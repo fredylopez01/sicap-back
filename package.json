@@ -4,6 +4,8 @@
   "description": "SICAP - Sistema Inteligente de Control de Acceso a Parqueaderos",
   "main": "server.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
