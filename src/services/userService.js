@@ -1,26 +1,6 @@
 import prisma from "../db/prismaClient.js";
 import bcrypt from "bcrypt";
 
-// Datos quemados por el momeno
-// const users = [
-//   {
-//     id: 1,
-//     email: "admin@parking.com",
-//     password: await bcrypt.hash("admin123", 10),
-//     role: "admin",
-//   },
-//   {
-//     id: 2,
-//     email: "controller@parking.com",
-//     password: await bcrypt.hash("controller123", 10),
-//     role: "user",
-//   },
-// ];
-
-// async function getUserByEmail(email) {
-//   return users.find((user) => user.email === email) || null;
-// }
-
 async function getUserByEmail(email) {
   return await prisma.user.findUnique({
     where: { email },
@@ -56,4 +36,40 @@ async function getAllUsers() {
   });
 }
 
-export { getUserByEmail, createUser, getAllUsers };
+async function incrementLoginAttempts(userId) {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      loginAttempts: { increment: 1 },
+    },
+  });
+}
+
+async function lockAccount(userId, lockUntilDate) {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      lockUntil: lockUntilDate,
+    },
+  });
+}
+
+async function updateLastLogin(userId, lastLoginDate) {
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      loginAttempts: 0,
+      lastLogin: lastLoginDate,
+      lockUntil: null,
+    },
+  });
+}
+
+export {
+  getUserByEmail,
+  createUser,
+  getAllUsers,
+  incrementLoginAttempts,
+  lockAccount,
+  updateLastLogin,
+};

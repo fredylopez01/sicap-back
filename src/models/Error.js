@@ -19,4 +19,24 @@ class NotFoundError extends AppError {
   }
 }
 
-export { AppError, UnauthorizedError, NotFoundError };
+class InactiveAccountError extends AppError {
+  constructor(
+    message = "Tu cuenta está inactiva, por favor contacta al administrador."
+  ) {
+    super(message, 403);
+  }
+}
+
+class AccountLockedError extends AppError {
+  constructor(message = "Cuenta bloqueada") {
+    super(message, 403);
+  }
+}
+
+export {
+  AppError,
+  UnauthorizedError,
+  NotFoundError,
+  InactiveAccountError,
+  AccountLockedError,
+};
