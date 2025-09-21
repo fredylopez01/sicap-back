@@ -13,6 +13,12 @@ class UnauthorizedError extends AppError {
   }
 }
 
+class ForbiddenError extends AppError {
+  constructor(message = "Acción denegada por falta de permisos") {
+    super(message, 403);
+  }
+}
+
 class NotFoundError extends AppError {
   constructor(message = "Recurso no encontrado") {
     super(message, 404);
@@ -36,6 +42,7 @@ class AccountLockedError extends AppError {
 export {
   AppError,
   UnauthorizedError,
+  ForbiddenError,
   NotFoundError,
   InactiveAccountError,
   AccountLockedError,

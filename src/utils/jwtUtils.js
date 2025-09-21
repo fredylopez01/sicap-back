@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { UnauthorizedError } from "../models/Error.js";
 
 function generateToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -6,4 +7,12 @@ function generateToken(payload) {
   });
 }
 
-export { generateToken };
+function verifyJwtToken(token) {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    throw new UnauthorizedError("Token inválido o expirado");
+  }
+}
+
+export { generateToken, verifyJwtToken };
