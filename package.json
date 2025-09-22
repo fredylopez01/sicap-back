@@ -13,14 +13,19 @@
     "url": "git+https://github.com/fredylopez01/sicap-back.git"
   },
   "author": "fredylopez01, santino33, JUANCH00",
+  "type": "commonjs",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fredylopez01/sicap-back/issues"
   },
   "homepage": "https://github.com/fredylopez01/sicap-back#readme",
   "dependencies": {
+    "@prisma/client": "^6.16.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.16.2"
   }
 }
