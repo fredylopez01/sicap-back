@@ -7,13 +7,22 @@ async function getUserByEmail(email) {
   });
 }
 
-async function createUser(data) {
-  const hashedPassword = await bcrypt.hash(data.password, 10);
+async function createUser(newUser) {
+  const hashedPassword = await bcrypt.hash(newUser.password, 10);
   const user = await prisma.user.create({
     data: {
-      email: data.email,
+      cedula: newUser.cedula,
+      names: newUser.names,
+      lastNames: newUser.lastNames,
+      phone: newUser.phone,
+      email: newUser.email,
+      branchId: newUser.branchId,
+      userHash: newUser.userHash,
       password: hashedPassword,
-      role: data.role || "CONTROLLER",
+      role: newUser.role || "CONTROLLER",
+      hireDate: newUser.hireDate
+        ? new Date(newUser.hireDate)
+        : new Date().toISOString().split("T")[0],
     },
   });
   const { password: _, ...userWithoutPassword } = user;
