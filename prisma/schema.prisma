@@ -13,20 +13,236 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Client table
+model Client {
+  id               Int          @id @default(autoincrement()) @map("id_cliente")
+  cedula           String       @unique @db.VarChar(20)
+  names            String       @map("nombres") @db.VarChar(100)
+  lastNames        String       @map("apellidos") @db.VarChar(100)
+  phone            String?      @map("telefono") @db.VarChar(20)
+  email            String?      @db.VarChar(100)
+  address          String?      @map("direccion") @db.VarChar(255)
+  registrationDate DateTime     @default(now()) @map("fecha_registro") @db.Timestamp(0)
+  status           ClientStatus @default(active) @map("estado")
+
+  // Relations
+  subscriptions Subscription[]
+
+  @@map("clientes")
+}
+
+// Branch/Location table
+model Branch {
+  id          Int          @id @default(autoincrement()) @map("id_sede")
+  name        String       @map("nombre") @db.VarChar(100)
+  address     String       @map("direccion") @db.VarChar(255)
+  city        String       @map("ciudad") @db.VarChar(50)
+  department  String       @map("departamento") @db.VarChar(50)
+  phone       String?      @map("telefono") @db.VarChar(20)
+  openingTime DateTime     @default("1970-01-01T07:00:00.000Z") @map("horario_apertura") @db.Time(0)
+  closingTime DateTime     @default("1970-01-01T21:00:00.000Z") @map("horario_cierre") @db.Time(0)
+  status      BranchStatus @default(active) @map("estado")
+
+  // Relations
+  users         User[]
+  zones         Zone[]
+  subscriptions Subscription[]
+
+  @@map("sedes")
+} 
+
+// user table
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  password      String
-  role          UserRole  @default(CONTROLLER)
+  id           Int        @id @default(autoincrement()) @map("id_controlador")
+  cedula       String     @unique @db.VarChar(20)
+  names        String     @map("nombres") @db.VarChar(100)
+  lastNames    String     @map("apellidos") @db.VarChar(100)
+  phone        String?    @map("telefono") @db.VarChar(20)
+  email        String     @unique @db.VarChar(100)
+  branchId     Int        @map("id_sede")
+  userHash     String     @unique @map("usuario_hash") @db.VarChar(255)
+  password     String     @map("password_hash") @db.VarChar(255)
+  role         UserRole   @default(CONTROLLER) @map("rol")
   isActive      Boolean   @default(true)
+  hireDate     DateTime   @map("fecha_ingreso") @db.Date
+  createdAt    DateTime   @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  updatedAt    DateTime  @updatedAt
+  lockUntil    DateTime?
   loginAttempts Int       @default(0)
   lastLogin     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lockUntil     DateTime?
+
+  // Relations
+  branch       Branch          @relation(fields: [branchId], references: [id])
+  entryRecords VehicleRecord[] @relation("EntryController")
+  exitRecords  VehicleRecord[] @relation("ExitController")
+
+  @@index([branchId])
+  @@map("controladores")
+}
+
+// Vehicle type table
+model VehicleType {
+  id           Int           @id @default(autoincrement()) @map("id_tipo")
+  name         String        @unique @map("nombre") @db.VarChar(50)
+  description  String?       @map("descripcion") @db.Text
+  hourlyRate   Decimal       @map("tarifa_hora") @db.Decimal(10, 2)
+  status       GenericStatus @default(active) @map("estado")
+  creationDate DateTime      @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+
+  // Relations
+  zones         Zone[]
+  records       VehicleRecord[]
+  subscriptions Subscription[]
+
+  @@map("tipos_vehiculos")
+}
+
+// Zone table
+model Zone {
+  id            Int        @id @default(autoincrement()) @map("id_zona")
+  branchId      Int        @map("id_sede")
+  name          String     @map("nombre") @db.VarChar(50)
+  vehicleTypeId Int        @map("id_tipo_vehiculo")
+  totalCapacity Int        @map("capacidad_total")
+  description   String?    @map("descripcion") @db.Text
+  status        ZoneStatus @default(active) @map("estado")
+
+  // Relations
+  branch      Branch      @relation(fields: [branchId], references: [id])
+  vehicleType VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  spaces      Space[]
+
+  @@index([branchId])
+  @@index([vehicleTypeId])
+  @@map("zonas")
+}
+
+// Space table
+model Space {
+  id             Int         @id @default(autoincrement()) @map("id_espacio")
+  zoneId         Int         @map("id_zona")
+  spaceNumber    String      @map("numero_espacio") @db.VarChar(10)
+  hasSensor      Boolean     @default(false) @map("tiene_sensor")
+  physicalStatus SpaceStatus @default(available) @map("estado_fisico")
+  creationDate   DateTime    @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+
+  // Relations
+  zone          Zone            @relation(fields: [zoneId], references: [id])
+  records       VehicleRecord[]
+  subscriptions Subscription[]
+
+  @@unique([zoneId, spaceNumber], map: "unique_espacio_zona")
+  @@index([physicalStatus], map: "idx_espacios_estado")
+  @@map("espacios")
+}
+
+// Vehicle record table
+model VehicleRecord {
+  id                Int          @id @default(autoincrement()) @map("id_registro")
+  licensePlate      String       @map("placa") @db.VarChar(10)
+  vehicleTypeId     Int          @map("id_tipo_vehiculo")
+  spaceId           Int          @map("id_espacio")
+  entryControllerId Int          @map("id_controlador_entrada")
+  exitControllerId  Int?         @map("id_controlador_salida")
+  entryDate         DateTime     @default(now()) @map("fecha_entrada") @db.Timestamp(0)
+  exitDate          DateTime?    @map("fecha_salida") @db.Timestamp(0)
+  parkedHours       Decimal?     @map("horas_estacionado") @db.Decimal(4, 2)
+  appliedRate       Decimal      @map("tarifa_aplicada") @db.Decimal(10, 2)
+  totalToPay        Decimal?     @map("total_pagar") @db.Decimal(10, 2)
+  observations      String?      @map("observaciones") @db.Text
+  status            RecordStatus @default(active) @map("estado")
+
+  // Relations
+  vehicleType     VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  space           Space       @relation(fields: [spaceId], references: [id])
+  entryController User        @relation("EntryController", fields: [entryControllerId], references: [id])
+  exitController  User?       @relation("ExitController", fields: [exitControllerId], references: [id])
+
+  @@index([vehicleTypeId])
+  @@index([spaceId])
+  @@index([entryControllerId])
+  @@index([exitControllerId])
+  @@index([entryDate], map: "idx_registros_fecha_entrada")
+  @@index([licensePlate], map: "idx_registros_placa")
+  @@index([status], map: "idx_registros_estado")
+  @@map("registros_vehiculos")
+}
+
+// Subscription table
+model Subscription {
+  id               Int                @id @default(autoincrement()) @map("id_suscripcion")
+  clientId         Int                @map("id_cliente")
+  branchId         Int                @map("id_sede")
+  vehicleTypeId    Int                @map("id_tipo_vehiculo")
+  subscriptionType SubscriptionType   @map("tipo_suscripcion")
+  fixedRate        Decimal            @map("tarifa_fija") @db.Decimal(10, 2)
+  startDate        DateTime           @map("fecha_inicio") @db.Date
+  endDate          DateTime           @map("fecha_fin") @db.Date
+  assignedSpace    Int?               @map("espacio_asignado")
+  status           SubscriptionStatus @default(active) @map("estado")
+  creationDate     DateTime           @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+
+  // Relations
+  client      Client      @relation(fields: [clientId], references: [id])
+  branch      Branch      @relation(fields: [branchId], references: [id])
+  vehicleType VehicleType @relation(fields: [vehicleTypeId], references: [id])
+  space       Space?      @relation(fields: [assignedSpace], references: [id])
+
+  @@index([clientId])
+  @@index([branchId])
+  @@index([vehicleTypeId])
+  @@index([assignedSpace])
+  @@map("suscripciones")
+}
+
+// Enums
+enum ClientStatus {
+  active   @map("activo")
+  inactive @map("inactivo")
+}
+
+enum BranchStatus {
+  active   @map("activa")
+  inactive @map("inactiva")
 }
 
 enum UserRole {
-  ADMIN
   CONTROLLER
+  ADMIN
+}
+
+enum GenericStatus {
+  active   @map("activo")
+  inactive @map("inactivo")
+}
+
+enum ZoneStatus {
+  active      @map("activa")
+  inactive    @map("inactiva")
+  maintenance @map("mantenimiento")
+}
+
+enum SpaceStatus {
+  available   @map("disponible")
+  occupied    @map("ocupado")
+  reserved    @map("reservado")
+  maintenance @map("mantenimiento")
+}
+
+enum RecordStatus {
+  active    @map("activo")
+  finished  @map("finalizado")
+  cancelled @map("cancelado")
+}
+
+enum SubscriptionType {
+  daily   @map("diaria")
+  weekly  @map("semanal")
+  monthly @map("mensual")
+}
+
+enum SubscriptionStatus {
+  active    @map("activa")
+  expired   @map("vencida")
+  cancelled @map("cancelada")
 }

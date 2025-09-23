@@ -14,6 +14,7 @@
     "url": "git+https://github.com/fredylopez01/sicap-back.git"
   },
   "author": "fredylopez01, santino33, JUANCH00",
+  "type": "commonjs",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/fredylopez01/sicap-back/issues"
