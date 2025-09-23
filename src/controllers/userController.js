@@ -2,8 +2,7 @@ import { createUser, getAllUsers } from "../services/userService.js";
 
 async function createUserController(req, res, next) {
   try {
-    const { email, password, role } = req.body;
-    const user = await createUser({ email, password, role });
+    const user = await createUser(req.body);
     return res.status(201).json({
       success: true,
       message: "Usuario creado exitosamente",

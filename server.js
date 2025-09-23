@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import errorHandler from "./src/middlewares/errorHandler.js";
 import authRouter from "./src/routes/authRouter.js";
 import userRouter from "./src/routes/userRouter.js";
+import branchRouter from "./src/routes/branchRouter.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.get("/", (req, res) => {
 // Rutas
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
+app.use("/api/branches", branchRouter);
 
 // Middleware de manejo de errores (al final)
 app.use(errorHandler);
