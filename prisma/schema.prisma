@@ -1,6 +1,9 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -46,7 +49,7 @@ model Branch {
   subscriptions Subscription[]
 
   @@map("sedes")
-}
+} 
 
 // user table
 model User {
@@ -55,14 +58,18 @@ model User {
   names        String     @map("nombres") @db.VarChar(100)
   lastNames    String     @map("apellidos") @db.VarChar(100)
   phone        String?    @map("telefono") @db.VarChar(20)
-  email        String?    @unique @db.VarChar(100)
+  email        String     @unique @db.VarChar(100)
   branchId     Int        @map("id_sede")
   userHash     String     @unique @map("usuario_hash") @db.VarChar(255)
-  passwordHash String     @map("password_hash") @db.VarChar(255)
+  password     String     @map("password_hash") @db.VarChar(255)
   role         UserRole   @default(CONTROLLER) @map("rol")
-  status       UserStatus @default(active) @map("estado")
+  isActive      Boolean   @default(true)
   hireDate     DateTime   @map("fecha_ingreso") @db.Date
-  creationDate DateTime   @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  createdAt    DateTime   @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  updatedAt    DateTime  @updatedAt
+  lockUntil    DateTime?
+  loginAttempts Int       @default(0)
+  lastLogin     DateTime?
 
   // Relations
   branch       Branch          @relation(fields: [branchId], references: [id])
@@ -202,11 +209,6 @@ enum BranchStatus {
 enum UserRole {
   CONTROLLER
   ADMIN
-}
-
-enum UserStatus {
-  active   @map("activo")
-  inactive @map("inactivo")
 }
 
 enum GenericStatus {
