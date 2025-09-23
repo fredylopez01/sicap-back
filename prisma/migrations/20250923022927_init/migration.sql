@@ -1,32 +1,29 @@
 -- CreateEnum
-CREATE TYPE "public"."EstadoCliente" AS ENUM ('activo', 'inactivo');
+CREATE TYPE "public"."ClientStatus" AS ENUM ('activo', 'inactivo');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoSede" AS ENUM ('activa', 'inactiva');
+CREATE TYPE "public"."BranchStatus" AS ENUM ('activa', 'inactiva');
 
 -- CreateEnum
-CREATE TYPE "public"."RolControlador" AS ENUM ('CONTROLLER', 'ADMIN');
+CREATE TYPE "public"."UserRole" AS ENUM ('CONTROLLER', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoControlador" AS ENUM ('activo', 'inactivo');
+CREATE TYPE "public"."GenericStatus" AS ENUM ('activo', 'inactivo');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoGenerico" AS ENUM ('activo', 'inactivo');
+CREATE TYPE "public"."ZoneStatus" AS ENUM ('activa', 'inactiva', 'mantenimiento');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoZona" AS ENUM ('activa', 'inactiva', 'mantenimiento');
+CREATE TYPE "public"."SpaceStatus" AS ENUM ('disponible', 'ocupado', 'reservado', 'mantenimiento');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoEspacio" AS ENUM ('disponible', 'ocupado', 'reservado', 'mantenimiento');
+CREATE TYPE "public"."RecordStatus" AS ENUM ('activo', 'finalizado', 'cancelado');
 
 -- CreateEnum
-CREATE TYPE "public"."EstadoRegistro" AS ENUM ('activo', 'finalizado', 'cancelado');
+CREATE TYPE "public"."SubscriptionType" AS ENUM ('diaria', 'semanal', 'mensual');
 
 -- CreateEnum
-CREATE TYPE "public"."TipoSuscripcion" AS ENUM ('diaria', 'semanal', 'mensual');
-
--- CreateEnum
-CREATE TYPE "public"."EstadoSuscripcion" AS ENUM ('activa', 'vencida', 'cancelada');
+CREATE TYPE "public"."SubscriptionStatus" AS ENUM ('activa', 'vencida', 'cancelada');
 
 -- CreateTable
 CREATE TABLE "public"."clientes" (
@@ -38,7 +35,7 @@ CREATE TABLE "public"."clientes" (
     "email" VARCHAR(100),
     "direccion" VARCHAR(255),
     "fecha_registro" TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "estado" "public"."EstadoCliente" NOT NULL DEFAULT 'activo',
+    "estado" "public"."ClientStatus" NOT NULL DEFAULT 'activo',
 
     CONSTRAINT "clientes_pkey" PRIMARY KEY ("id_cliente")
 );
@@ -53,7 +50,7 @@ CREATE TABLE "public"."sedes" (
     "telefono" VARCHAR(20),
     "horario_apertura" TIME(0) NOT NULL DEFAULT '1970-01-01 07:00:00 +00:00',
     "horario_cierre" TIME(0) NOT NULL DEFAULT '1970-01-01 21:00:00 +00:00',
-    "estado" "public"."EstadoSede" NOT NULL DEFAULT 'activa',
+    "estado" "public"."BranchStatus" NOT NULL DEFAULT 'activa',
 
     CONSTRAINT "sedes_pkey" PRIMARY KEY ("id_sede")
 );
@@ -65,14 +62,18 @@ CREATE TABLE "public"."controladores" (
     "nombres" VARCHAR(100) NOT NULL,
     "apellidos" VARCHAR(100) NOT NULL,
     "telefono" VARCHAR(20),
-    "email" VARCHAR(100),
+    "email" VARCHAR(100) NOT NULL,
     "id_sede" INTEGER NOT NULL,
     "usuario_hash" VARCHAR(255) NOT NULL,
     "password_hash" VARCHAR(255) NOT NULL,
-    "rol" "public"."RolControlador" NOT NULL DEFAULT 'CONTROLLER',
-    "estado" "public"."EstadoControlador" NOT NULL DEFAULT 'activo',
+    "rol" "public"."UserRole" NOT NULL DEFAULT 'CONTROLLER',
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
     "fecha_ingreso" DATE NOT NULL,
     "fecha_creacion" TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "lockUntil" TIMESTAMP(3),
+    "loginAttempts" INTEGER NOT NULL DEFAULT 0,
+    "lastLogin" TIMESTAMP(3),
 
     CONSTRAINT "controladores_pkey" PRIMARY KEY ("id_controlador")
 );
@@ -83,7 +84,7 @@ CREATE TABLE "public"."tipos_vehiculos" (
     "nombre" VARCHAR(50) NOT NULL,
     "descripcion" TEXT,
     "tarifa_hora" DECIMAL(10,2) NOT NULL,
-    "estado" "public"."EstadoGenerico" NOT NULL DEFAULT 'activo',
+    "estado" "public"."GenericStatus" NOT NULL DEFAULT 'activo',
     "fecha_creacion" TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "tipos_vehiculos_pkey" PRIMARY KEY ("id_tipo")
@@ -97,7 +98,7 @@ CREATE TABLE "public"."zonas" (
     "id_tipo_vehiculo" INTEGER NOT NULL,
     "capacidad_total" INTEGER NOT NULL,
     "descripcion" TEXT,
-    "estado" "public"."EstadoZona" NOT NULL DEFAULT 'activa',
+    "estado" "public"."ZoneStatus" NOT NULL DEFAULT 'activa',
 
     CONSTRAINT "zonas_pkey" PRIMARY KEY ("id_zona")
 );
@@ -108,7 +109,7 @@ CREATE TABLE "public"."espacios" (
     "id_zona" INTEGER NOT NULL,
     "numero_espacio" VARCHAR(10) NOT NULL,
     "tiene_sensor" BOOLEAN NOT NULL DEFAULT false,
-    "estado_fisico" "public"."EstadoEspacio" NOT NULL DEFAULT 'disponible',
+    "estado_fisico" "public"."SpaceStatus" NOT NULL DEFAULT 'disponible',
     "fecha_creacion" TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "espacios_pkey" PRIMARY KEY ("id_espacio")
@@ -128,7 +129,7 @@ CREATE TABLE "public"."registros_vehiculos" (
     "tarifa_aplicada" DECIMAL(10,2) NOT NULL,
     "total_pagar" DECIMAL(10,2),
     "observaciones" TEXT,
-    "estado" "public"."EstadoRegistro" NOT NULL DEFAULT 'activo',
+    "estado" "public"."RecordStatus" NOT NULL DEFAULT 'activo',
 
     CONSTRAINT "registros_vehiculos_pkey" PRIMARY KEY ("id_registro")
 );
@@ -139,12 +140,12 @@ CREATE TABLE "public"."suscripciones" (
     "id_cliente" INTEGER NOT NULL,
     "id_sede" INTEGER NOT NULL,
     "id_tipo_vehiculo" INTEGER NOT NULL,
-    "tipo_suscripcion" "public"."TipoSuscripcion" NOT NULL,
+    "tipo_suscripcion" "public"."SubscriptionType" NOT NULL,
     "tarifa_fija" DECIMAL(10,2) NOT NULL,
     "fecha_inicio" DATE NOT NULL,
     "fecha_fin" DATE NOT NULL,
     "espacio_asignado" INTEGER,
-    "estado" "public"."EstadoSuscripcion" NOT NULL DEFAULT 'activa',
+    "estado" "public"."SubscriptionStatus" NOT NULL DEFAULT 'activa',
     "fecha_creacion" TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "suscripciones_pkey" PRIMARY KEY ("id_suscripcion")
@@ -155,6 +156,9 @@ CREATE UNIQUE INDEX "clientes_cedula_key" ON "public"."clientes"("cedula");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "controladores_cedula_key" ON "public"."controladores"("cedula");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "controladores_email_key" ON "public"."controladores"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "controladores_usuario_hash_key" ON "public"."controladores"("usuario_hash");
