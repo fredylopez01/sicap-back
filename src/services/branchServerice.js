@@ -15,4 +15,10 @@ async function createBranch(newBranch) {
   return branch;
 }
 
-export { createBranch };
+async function getBranchById(branchId) {
+  return await prisma.branch.findUnique({
+    where: { id: branchId },
+  });
+}
+
+export { createBranch, getBranchById };
