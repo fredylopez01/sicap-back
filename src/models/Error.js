@@ -45,6 +45,14 @@ class ConflictDBError extends AppError {
   }
 }
 
+class BadRequestError extends AppError {
+  constructor(
+    message = "El servidor no puede procesar su solicitud debido a un error en los datos o la forma de la solicitud"
+  ) {
+    super(message, 400);
+  }
+}
+
 export {
   AppError,
   UnauthorizedError,
@@ -53,4 +61,5 @@ export {
   InactiveAccountError,
   AccountLockedError,
   ConflictDBError,
+  BadRequestError,
 };
