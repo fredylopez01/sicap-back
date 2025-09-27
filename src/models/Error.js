@@ -39,6 +39,20 @@ class AccountLockedError extends AppError {
   }
 }
 
+class ConflictDBError extends AppError {
+  constructor(message = "Se han presentado conflictos en la base de datos") {
+    super(message, 409);
+  }
+}
+
+class BadRequestError extends AppError {
+  constructor(
+    message = "El servidor no puede procesar su solicitud debido a un error en los datos o la forma de la solicitud"
+  ) {
+    super(message, 400);
+  }
+}
+
 export {
   AppError,
   UnauthorizedError,
@@ -46,4 +60,6 @@ export {
   NotFoundError,
   InactiveAccountError,
   AccountLockedError,
+  ConflictDBError,
+  BadRequestError,
 };
