@@ -1,4 +1,4 @@
-import { createBranch } from "../services/branchServerice.js";
+import { createBranch, getAllBranches } from "../services/branchServerice.js";
 
 async function createBranchController(req, res, next) {
   try {
@@ -13,4 +13,17 @@ async function createBranchController(req, res, next) {
   }
 }
 
-export { createBranchController };
+async function getAllBranchesController(req, res, next) {
+  try {
+    const users = await getAllBranches();
+    return res.status(200).json({
+      success: true,
+      message: "Sedes recuperadas exitosamente",
+      data: users,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export { createBranchController, getAllBranchesController };
