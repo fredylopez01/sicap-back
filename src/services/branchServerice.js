@@ -21,4 +21,8 @@ async function getBranchById(branchId) {
   });
 }
 
-export { createBranch, getBranchById };
+async function getAllBranches() {
+  return await prisma.branch.findMany();
+}
+
+export { createBranch, getBranchById, getAllBranches };
