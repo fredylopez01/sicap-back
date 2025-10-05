@@ -15,11 +15,11 @@ async function createBranchController(req, res, next) {
 
 async function getAllBranchesController(req, res, next) {
   try {
-    const users = await getAllBranches();
+    const branches = await getAllBranches();
     return res.status(200).json({
       success: true,
       message: "Sedes recuperadas exitosamente",
-      data: users,
+      data: branches,
     });
   } catch (error) {
     next(error);

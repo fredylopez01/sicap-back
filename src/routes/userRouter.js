@@ -9,7 +9,13 @@ import { createUserSchema } from "../schema/UserSchema.js";
 
 const router = express.Router();
 
-router.post("/", validateSchema(createUserSchema), createUserController); // Crear usuario
+router.post(
+  "/",
+  verifyToken,
+  validateSchema(createUserSchema),
+  createUserController
+); // Crear usuario
+
 router.get("/", verifyToken, checkRole("ADMIN"), getAllUsersController); // Obtener todos los usuarios
 
 export default router;
