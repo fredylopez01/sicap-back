@@ -1,5 +1,6 @@
 import prisma from "../db/prismaClient.js";
 import { getBranchById } from "./branchServerice.js";
+import { createSpacesByZone } from "./SpaceService.js";
 import { getVehicleTypeById } from "./vehicleTypeService.js";
 
 async function createZone(newZone) {
@@ -17,15 +18,24 @@ async function createZone(newZone) {
     );
   }
 
-  const zone = await prisma.zone.create({
-    data: {
-      branchId: newZone.branchId,
-      name: newZone.name,
-      vehicleTypeId: newZone.vehicleTypeId,
-      totalCapacity: newZone.totalCapacity,
-      description: newZone.description,
-    },
+  // Crear la zona y los espacios en una transacción
+  const zone = await prisma.$transaction(async (tx) => {
+    const createdZone = await tx.zone.create({
+      data: {
+        branchId: newZone.branchId,
+        name: newZone.name,
+        vehicleTypeId: newZone.vehicleTypeId,
+        totalCapacity: newZone.totalCapacity,
+        description: newZone.description,
+      },
+    });
+
+    // Crear los espacios automáticamente
+    await createSpacesByZone(tx, createdZone);
+
+    return createdZone;
   });
+
   return zone;
 }
 
