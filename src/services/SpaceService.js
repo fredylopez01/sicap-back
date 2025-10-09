@@ -1,5 +1,5 @@
 import prisma from "../db/prismaClient.js";
-import { getZoneById } from "./zoneService.js";
+import { getVehicleTypeFromZone, getZoneById } from "./zoneService.js";
 
 // Crear espacios según la zona y su capacidad
 async function createSpacesByZone(tx, zone) {
@@ -44,4 +44,30 @@ async function getAllSpacesByZone(zoneId) {
   return spaces;
 }
 
-export { createSpace, createSpacesByZone, getAllSpacesByZone };
+async function getSpaceById(spaceId) {
+  const space = await prisma.space.findUnique({
+    where: {
+      id: spaceId,
+    },
+  });
+  return space;
+}
+
+async function getHourlyRateBySpace(spaceId) {
+  // Encontrar el espacio
+  const space = await getSpaceById(spaceId);
+  if (!space) {
+    throw new NotFoundError("Este espacio no existe, por favor verifique.");
+  }
+  const vehicleType = await getVehicleTypeFromZone(space.zoneId);
+
+  return vehicleType.hourlyRate;
+}
+
+export {
+  createSpace,
+  createSpacesByZone,
+  getAllSpacesByZone,
+  getSpaceById,
+  getHourlyRateBySpace,
+};

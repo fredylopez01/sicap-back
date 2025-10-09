@@ -51,4 +51,18 @@ async function getAllZonesByBranch(branchId) {
   });
 }
 
-export { createZone, getZoneById, getAllZonesByBranch };
+async function getVehicleTypeFromZone(zoneId) {
+  const zone = await getZoneById(zoneId);
+  if (!zone) {
+    throw new NotFoundError("Esta zona no existe, por favor verifique.");
+  }
+  const vehicleType = await getVehicleTypeById(zone.vehicleTypeId);
+  if (!vehicleType) {
+    throw new NotFoundError(
+      "Este tipo de vehículo no existe, por favor verifique."
+    );
+  }
+  return vehicleType;
+}
+
+export { createZone, getZoneById, getAllZonesByBranch, getVehicleTypeFromZone };
