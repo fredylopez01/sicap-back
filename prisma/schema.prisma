@@ -91,8 +91,6 @@ model VehicleType {
 
   // Relations
   zones         Zone[]
-  records       VehicleRecord[]
-  subscriptions Subscription[]
 
   @@map("tipos_vehiculos")
 }
@@ -140,7 +138,6 @@ model Space {
 model VehicleRecord {
   id                Int          @id @default(autoincrement()) @map("id_registro")
   licensePlate      String       @map("placa") @db.VarChar(10)
-  vehicleTypeId     Int          @map("id_tipo_vehiculo")
   spaceId           Int          @map("id_espacio")
   entryControllerId Int          @map("id_controlador_entrada")
   exitControllerId  Int?         @map("id_controlador_salida")
@@ -153,12 +150,10 @@ model VehicleRecord {
   status            RecordStatus @default(active) @map("estado")
 
   // Relations
-  vehicleType     VehicleType @relation(fields: [vehicleTypeId], references: [id])
   space           Space       @relation(fields: [spaceId], references: [id])
   entryController User        @relation("EntryController", fields: [entryControllerId], references: [id])
   exitController  User?       @relation("ExitController", fields: [exitControllerId], references: [id])
 
-  @@index([vehicleTypeId])
   @@index([spaceId])
   @@index([entryControllerId])
   @@index([exitControllerId])
@@ -173,7 +168,6 @@ model Subscription {
   id               Int                @id @default(autoincrement()) @map("id_suscripcion")
   clientId         Int                @map("id_cliente")
   branchId         Int                @map("id_sede")
-  vehicleTypeId    Int                @map("id_tipo_vehiculo")
   subscriptionType SubscriptionType   @map("tipo_suscripcion")
   fixedRate        Decimal            @map("tarifa_fija") @db.Decimal(10, 2)
   startDate        DateTime           @map("fecha_inicio") @db.Date
@@ -185,12 +179,10 @@ model Subscription {
   // Relations
   client      Client      @relation(fields: [clientId], references: [id])
   branch      Branch      @relation(fields: [branchId], references: [id])
-  vehicleType VehicleType @relation(fields: [vehicleTypeId], references: [id])
   space       Space?      @relation(fields: [assignedSpace], references: [id])
 
   @@index([clientId])
   @@index([branchId])
-  @@index([vehicleTypeId])
   @@index([assignedSpace])
   @@map("suscripciones")
 }

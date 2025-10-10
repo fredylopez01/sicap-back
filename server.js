@@ -6,6 +6,10 @@ import errorHandler from "./src/middlewares/errorHandler.js";
 import authRouter from "./src/routes/authRouter.js";
 import userRouter from "./src/routes/userRouter.js";
 import branchRouter from "./src/routes/branchRouter.js";
+import vehicleTypeRouter from "./src/routes/vehicleTypeRouter.js";
+import zoneRouter from "./src/routes/zoneRouter.js";
+import spaceRouter from "./src/routes/spaceRouter.js";
+import vehicleRecordRouter from "./src/routes/vehicleRecordRouter.js";
 
 dotenv.config();
 
@@ -25,6 +29,10 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/branches", branchRouter);
+app.use("/api/vehicleTypes", vehicleTypeRouter);
+app.use("/api/zones", zoneRouter);
+app.use("/api/spaces", spaceRouter);
+app.use("/api/vehicleRecords", vehicleRecordRouter);
 
 // Middleware de manejo de errores (al final)
 app.use(errorHandler);
