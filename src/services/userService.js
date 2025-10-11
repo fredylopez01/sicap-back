@@ -48,10 +48,7 @@ async function validateNewUser(newUser) {
   }
 
   // Verificar si la branch existe
-  const branch = await getBranchById(newUser.branchId);
-  if (!branch) {
-    throw new NotFoundError("Esta sede no existe, por favor verifique.");
-  }
+  await getBranchById(newUser.branchId);
 
   // Verificar nombre de usuario
   if (await getUserByUsername(newUser.userHash)) {
@@ -134,9 +131,6 @@ async function getUserById(userId) {
 
 async function updateUser(userId, updateData, actingUser) {
   const user = await getUserById(userId);
-  if (!user) {
-    throw new NotFoundError("El usuario no existe.");
-  }
 
   // Validar permisos
   if (actingUser.role === "CONTROLLER" && actingUser.id !== userId) {
@@ -157,9 +151,10 @@ async function updateUser(userId, updateData, actingUser) {
       "isActive",
       "branchId",
       "hireDate",
+      "userHash",
     ];
   } else {
-    allowedFields = ["names", "lastNames", "phone", "email"];
+    allowedFields = ["names", "lastNames", "phone", "email", "userHash"];
   }
 
   // Filtrar datos no permitidos
