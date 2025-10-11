@@ -1,4 +1,9 @@
-import { createBranch, getAllBranches } from "../services/branchServerice.js";
+import {
+  createBranch,
+  deleteBranch,
+  getAllBranches,
+  updateBranch,
+} from "../services/branchServerice.js";
 
 async function createBranchController(req, res, next) {
   try {
@@ -26,4 +31,40 @@ async function getAllBranchesController(req, res, next) {
   }
 }
 
-export { createBranchController, getAllBranchesController };
+async function updateBranchController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedBranch = await updateBranch(Number(id), updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Sede actualizada exitosamente.",
+      data: updatedBranch,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteBranchController(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    await deleteBranch(Number(id));
+    return res.status(200).json({
+      success: true,
+      message: "Sede eliminada existosamente",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export {
+  createBranchController,
+  getAllBranchesController,
+  updateBranchController,
+  deleteBranchController,
+};

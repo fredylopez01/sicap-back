@@ -5,10 +5,7 @@ import { getVehicleTypeById } from "./vehicleTypeService.js";
 
 async function createZone(newZone) {
   // Verificar si la branch existe
-  const branch = await getBranchById(newZone.branchId);
-  if (!branch) {
-    throw new NotFoundError("Esta sede no existe, por favor verifique.");
-  }
+  await getBranchById(newZone.branchId);
 
   // Verificar si el vehicleType existe
   const vehicleType = await getVehicleTypeById(newZone.vehicleTypeId);
