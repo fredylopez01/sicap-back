@@ -53,6 +53,12 @@ class BadRequestError extends AppError {
   }
 }
 
+class ParkingSpaceUnavailableError extends AppError {
+  constructor(message = "El espacio no está disponible") {
+    super(message, 409);
+  }
+}
+
 export {
   AppError,
   UnauthorizedError,
@@ -62,4 +68,5 @@ export {
   AccountLockedError,
   ConflictDBError,
   BadRequestError,
+  ParkingSpaceUnavailableError,
 };
