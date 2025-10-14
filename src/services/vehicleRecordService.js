@@ -1,5 +1,6 @@
 import prisma from "../db/prismaClient.js";
 import {
+  ConflictDBError,
   NotFoundError,
   ParkingSpaceUnavailableError,
 } from "../models/Error.js";
@@ -10,10 +11,16 @@ import {
 } from "./SpaceService.js";
 
 async function createVehicleEntry(entryControllerId, vehicleRecord) {
+  if (await getRecordByPlate(vehicleRecord.licensePlate)) {
+    throw new ConflictDBError(
+      "Este vehículo ya ingreso a este u otro parqueadero pero no se ha registrado su salida"
+    );
+  }
+
   const space = await getSpaceById(vehicleRecord.spaceId);
   if (space.physicalStatus !== "available") {
     throw new ParkingSpaceUnavailableError(
-      `El espacio no está disponible se en cuenta en un estado de: ${space.physicalStatus}`
+      `El espacio no está disponible (${space.physicalStatus})`
     );
   }
 
@@ -35,7 +42,6 @@ async function createVehicleExit(exitControllerId, exitData) {
   const entry = await prisma.vehicleRecord.findFirst({
     where: {
       licensePlate: exitData.licensePlate,
-      AND,
       status: "active",
     },
   });
@@ -46,13 +52,13 @@ async function createVehicleExit(exitControllerId, exitData) {
     );
   }
 
-  const exitDate = Date.now();
+  const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
   const totalToPay = parkedHours * entry.appliedRate;
 
   const vehicleRecord = await prisma.vehicleRecord.update({
     where: {
-      licensePlate: exitData.licensePlate,
+      id: entry.id,
     },
     data: {
       exitControllerId: exitControllerId,
@@ -73,11 +79,11 @@ async function getActiveRecords() {
       status: "active",
     },
     select: {
-      licensePlate,
-      entryDate,
-      space,
-      entryController,
-      observations,
+      licensePlate: true,
+      entryDate: true,
+      spaceId: true,
+      entryControllerId: true,
+      observations: true,
     },
   });
   if (!records) {
@@ -85,6 +91,17 @@ async function getActiveRecords() {
       "No se encontraron registros que coincidan con los criterios de busqueda"
     );
   }
+  return records;
+}
+
+async function getRecordByPlate(licensePlate) {
+  const record = await prisma.vehicleRecord.findFirst({
+    where: {
+      licensePlate: licensePlate,
+      status: "active",
+    },
+  });
+  return record;
 }
 
 export { createVehicleEntry, createVehicleExit, getActiveRecords };
