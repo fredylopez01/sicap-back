@@ -3,6 +3,7 @@ import {
   createVehicleEntry,
   createVehicleExit,
   getActiveRecords,
+  updateVehicleRecord,
 } from "../services/vehicleRecordService.js";
 
 async function createVehicleEntryController(req, res, next) {
@@ -44,8 +45,26 @@ async function getActiveRecordsController(req, res, next) {
   }
 }
 
+async function updateVehicleRecordController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedRecord = await updateVehicleRecord(Number(id), updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Registro actualizado correctamente",
+      data: updatedRecord,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export {
   createVehicleEntryController,
   createVehicleExitController,
   getActiveRecordsController,
+  updateVehicleRecordController,
 };

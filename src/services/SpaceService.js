@@ -79,6 +79,16 @@ async function updatePhysiclaStateSpace(spaceId, status) {
   }
 }
 
+async function isAvailableSpace(spaceId) {
+  const space = await getSpaceById(vehicleRecord.spaceId);
+  if (space.physicalStatus !== "available") {
+    throw new ParkingSpaceUnavailableError(
+      `El espacio no está disponible (${space.physicalStatus})`
+    );
+  }
+  return true;
+}
+
 export {
   createSpace,
   createSpacesByZone,
@@ -86,4 +96,5 @@ export {
   getSpaceById,
   getHourlyRateBySpace,
   updatePhysiclaStateSpace,
+  isAvailableSpace,
 };

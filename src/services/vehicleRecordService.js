@@ -7,6 +7,7 @@ import {
 import {
   getHourlyRateBySpace,
   getSpaceById,
+  isAvailableSpace,
   updatePhysiclaStateSpace,
 } from "./SpaceService.js";
 
@@ -17,12 +18,7 @@ async function createVehicleEntry(entryControllerId, vehicleRecord) {
     );
   }
 
-  const space = await getSpaceById(vehicleRecord.spaceId);
-  if (space.physicalStatus !== "available") {
-    throw new ParkingSpaceUnavailableError(
-      `El espacio no está disponible (${space.physicalStatus})`
-    );
-  }
+  await isAvailableSpace(vehicleRecord.spaceId);
 
   const appliedRate = await getHourlyRateBySpace(vehicleRecord.spaceId);
 
@@ -32,6 +28,7 @@ async function createVehicleEntry(entryControllerId, vehicleRecord) {
       spaceId: vehicleRecord.spaceId,
       entryControllerId: entryControllerId,
       appliedRate: appliedRate,
+      observations: vehicleRecord.observations,
     },
   });
   await updatePhysiclaStateSpace(newVehicleRecord.spaceId, "occupied");
@@ -79,6 +76,7 @@ async function getActiveRecords() {
       status: "active",
     },
     select: {
+      id: true,
       licensePlate: true,
       entryDate: true,
       spaceId: true,
@@ -104,4 +102,60 @@ async function getRecordByPlate(licensePlate) {
   return record;
 }
 
-export { createVehicleEntry, createVehicleExit, getActiveRecords };
+async function getRecordById(vehicleRecordId) {
+  const record = await prisma.vehicleRecord.findUnique({
+    where: {
+      id: vehicleRecordId,
+    },
+  });
+  if (!record) {
+    throw new NotFoundError("Este registro no existe, por favor verifique.");
+  }
+}
+
+async function updateVehicleRecord(recordId, updateData) {
+  // Verificar si el registro existe
+  await getRecordById(recordId);
+
+  // Definir campos con posibles actualizaciones
+  let allowedFields = [
+    "appliedRate",
+    "licensePlate",
+    "observations",
+    "parkedHours",
+    "spaceId",
+  ];
+
+  // Filtrar datos no permitidos
+  const filteredData = {};
+  for (const key of allowedFields) {
+    if (updateData[key] !== undefined) {
+      filteredData[key] = updateData[key];
+    }
+  }
+
+  if (Object.keys(filteredData).length === 0) {
+    throw new ConflictDBError(
+      "No se proporcionaron campos válidos para actualizar."
+    );
+  }
+
+  const spaceId = filteredData["spaceId"];
+  if (spaceId !== undefined) {
+    await isAvailableSpace(spaceId);
+  }
+
+  // Actualizar registro
+  const updateRecord = await prisma.vehicleRecord.update({
+    where: { id: recordId },
+    data: filteredData,
+  });
+  return updateRecord;
+}
+
+export {
+  createVehicleEntry,
+  createVehicleExit,
+  getActiveRecords,
+  updateVehicleRecord,
+};
