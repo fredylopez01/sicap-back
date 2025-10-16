@@ -11,7 +11,7 @@ import {
   updatePhysiclaStateSpace,
 } from "./SpaceService.js";
 
-async function createVehicleEntry(entryControllerId, vehicleRecord) {
+async function createVehicleEntry(entryController, vehicleRecord) {
   if (await getRecordByPlate(vehicleRecord.licensePlate)) {
     throw new ConflictDBError(
       "Este vehículo ya ingreso a este u otro parqueadero pero no se ha registrado su salida"
@@ -26,16 +26,17 @@ async function createVehicleEntry(entryControllerId, vehicleRecord) {
     data: {
       licensePlate: vehicleRecord.licensePlate,
       spaceId: vehicleRecord.spaceId,
-      entryControllerId: entryControllerId,
+      entryControllerId: entryController.id,
       appliedRate: appliedRate,
       observations: vehicleRecord.observations,
+      branchId: entryController.branchId,
     },
   });
   await updatePhysiclaStateSpace(newVehicleRecord.spaceId, "occupied");
   return newVehicleRecord;
 }
 
-async function createVehicleExit(exitControllerId, exitData) {
+async function createVehicleExit(exitController, exitData) {
   const entry = await prisma.vehicleRecord.findFirst({
     where: {
       licensePlate: exitData.licensePlate,
@@ -58,12 +59,13 @@ async function createVehicleExit(exitControllerId, exitData) {
       id: entry.id,
     },
     data: {
-      exitControllerId: exitControllerId,
+      exitControllerId: exitController.id,
       exitDate: exitDate,
       parkedHours: parkedHours,
       totalToPay: totalToPay,
       observations: exitData.observations,
       status: "finished",
+      branchId: exitController.branchId,
     },
   });
   await updatePhysiclaStateSpace(vehicleRecord.spaceId, "available");

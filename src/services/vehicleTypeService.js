@@ -3,6 +3,7 @@ import prisma from "../db/prismaClient.js";
 async function createVehicleType(newVehicleType) {
   const vehicleType = await prisma.vehicleType.create({
     data: {
+      branchId: newVehicleType.branchId,
       name: newVehicleType.name,
       description: newVehicleType.description,
       hourlyRate: newVehicleType.hourlyRate,

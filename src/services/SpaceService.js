@@ -1,5 +1,5 @@
 import prisma from "../db/prismaClient.js";
-import { ConflictDBError } from "../models/Error.js";
+import { ConflictDBError, NotFoundError } from "../models/Error.js";
 import { getVehicleTypeFromZone, getZoneById } from "./zoneService.js";
 
 // Crear espacios según la zona y su capacidad
@@ -80,7 +80,7 @@ async function updatePhysiclaStateSpace(spaceId, status) {
 }
 
 async function isAvailableSpace(spaceId) {
-  const space = await getSpaceById(vehicleRecord.spaceId);
+  const space = await getSpaceById(spaceId);
   if (space.physicalStatus !== "available") {
     throw new ParkingSpaceUnavailableError(
       `El espacio no está disponible (${space.physicalStatus})`

@@ -8,7 +8,7 @@ import {
 
 async function createVehicleEntryController(req, res, next) {
   try {
-    const entry = await createVehicleEntry(req.user.id, req.body);
+    const entry = await createVehicleEntry(req.user, req.body);
     return res.status(200).json({
       success: true,
       message: "Ingreso registrado exitosamente",
@@ -21,7 +21,7 @@ async function createVehicleEntryController(req, res, next) {
 
 async function createVehicleExitController(req, res, next) {
   try {
-    const entry = await createVehicleExit(req.user.id, req.body);
+    const entry = await createVehicleExit(req.user, req.body);
     return res.status(200).json({
       success: true,
       message: "Salida registrada exitosamente",
