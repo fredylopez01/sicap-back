@@ -34,7 +34,7 @@ async function getAllVehicleTypeController(req, res, next) {
 async function getVehicleTypesByBranchController(req, res, next) {
   try {
     const { id } = req.params;
-    const vehicleTypes = await getVehicleTypesByBranch(id);
+    const vehicleTypes = await getVehicleTypesByBranch(Number(id));
     return res.status(200).json({
       success: true,
       message: "Tipos de vehiculos por parqueadero recuperados exitosamente",

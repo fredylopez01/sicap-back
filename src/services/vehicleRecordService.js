@@ -1,12 +1,7 @@
 import prisma from "../db/prismaClient.js";
-import {
-  ConflictDBError,
-  NotFoundError,
-  ParkingSpaceUnavailableError,
-} from "../models/Error.js";
+import { ConflictDBError, NotFoundError } from "../models/Error.js";
 import {
   getHourlyRateBySpace,
-  getSpaceById,
   isAvailableSpace,
   updatePhysiclaStateSpace,
 } from "./SpaceService.js";
@@ -72,10 +67,11 @@ async function createVehicleExit(exitController, exitData) {
   return vehicleRecord;
 }
 
-async function getActiveRecords() {
+async function getActiveRecordsByBranch(branchId) {
   const records = await prisma.vehicleRecord.findMany({
     where: {
       status: "active",
+      branchId: branchId,
     },
     select: {
       id: true,
@@ -155,9 +151,64 @@ async function updateVehicleRecord(recordId, updateData) {
   return updateRecord;
 }
 
+async function getRecordsHistory(filters = {}) {
+  const {
+    branchId,
+    licensePlate,
+    entryControllerId,
+    exitControllerId,
+    status,
+    entryStartDate,
+    entryEndDate,
+    exitStartDate,
+    exitEndDate,
+  } = filters;
+
+  const records = await prisma.vehicleRecord.findMany({
+    where: {
+      ...(branchId && { space: { branchId } }),
+      ...(licensePlate && { licensePlate }),
+      ...(entryControllerId && { entryControllerId }),
+      ...(exitControllerId && { exitControllerId }),
+      ...(status && { status }),
+
+      // 🔹 Filtro por rango de fecha de entrada
+      ...(entryStartDate || entryEndDate
+        ? {
+            entryDate: {
+              ...(entryStartDate && { gte: new Date(entryStartDate) }),
+              ...(entryEndDate && { lte: new Date(entryEndDate) }),
+            },
+          }
+        : {}),
+
+      // 🔹 Filtro por rango de fecha de salida
+      ...(exitStartDate || exitEndDate
+        ? {
+            exitDate: {
+              ...(exitStartDate && { gte: new Date(exitStartDate) }),
+              ...(exitEndDate && { lte: new Date(exitEndDate) }),
+            },
+          }
+        : {}),
+    },
+    include: {
+      space: true,
+      entryController: true,
+      exitController: true,
+    },
+    orderBy: {
+      entryDate: "desc",
+    },
+  });
+
+  return records;
+}
+
 export {
   createVehicleEntry,
   createVehicleExit,
-  getActiveRecords,
+  getActiveRecordsByBranch,
   updateVehicleRecord,
+  getRecordsHistory,
 };

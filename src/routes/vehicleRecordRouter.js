@@ -4,6 +4,7 @@ import {
   createVehicleEntryController,
   createVehicleExitController,
   getActiveRecordsController,
+  getRecordsHistoryController,
   updateVehicleRecordController,
 } from "../controllers/vehicleRecord.js";
 
@@ -13,8 +14,10 @@ router.post("/entry", verifyToken, createVehicleEntryController); // Registrar i
 
 router.post("/exit", verifyToken, createVehicleExitController); // Registrar salida de un vehículo
 
-router.get("/active", verifyToken, getActiveRecordsController); // Obtener ingresos activos
+router.get("/active/:id", verifyToken, getActiveRecordsController); // Obtener ingresos activos de iuna sede
 
 router.put("/:id", verifyToken, updateVehicleRecordController); // Actualizar registro
+
+router.get("/filtered", verifyToken, getRecordsHistoryController); // Obtener registros filtrados
 
 export default router;
