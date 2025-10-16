@@ -1,6 +1,8 @@
+import { success } from "zod";
 import {
   createVehicleType,
   getAllVehicleTypes,
+  getVehicleTypesByBranch,
 } from "../services/vehicleTypeService.js";
 
 async function createVehicleTypeController(req, res, next) {
@@ -29,4 +31,22 @@ async function getAllVehicleTypeController(req, res, next) {
   }
 }
 
-export { createVehicleTypeController, getAllVehicleTypeController };
+async function getVehicleTypesByBranchController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const vehicleTypes = await getVehicleTypesByBranch(id);
+    return res.status(200).json({
+      success: true,
+      message: "Tipos de vehiculos por parqueadero recuperados exitosamente",
+      data: vehicleTypes,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export {
+  createVehicleTypeController,
+  getAllVehicleTypeController,
+  getVehicleTypesByBranchController,
+};

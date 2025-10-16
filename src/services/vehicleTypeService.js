@@ -22,4 +22,18 @@ async function getAllVehicleTypes() {
   return await prisma.vehicleType.findMany();
 }
 
-export { createVehicleType, getVehicleTypeById, getAllVehicleTypes };
+async function getVehicleTypesByBranch(branchId) {
+  const vehicleTypes = await prisma.vehicleType.findMany({
+    where: {
+      branchId: branchId,
+    },
+  });
+  return vehicleTypes;
+}
+
+export {
+  createVehicleType,
+  getVehicleTypeById,
+  getAllVehicleTypes,
+  getVehicleTypesByBranch,
+};
