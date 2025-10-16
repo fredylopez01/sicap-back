@@ -2,6 +2,7 @@ import {
   createVehicleEntry,
   createVehicleExit,
   getActiveRecordsByBranch,
+  getDailySummary,
   getRecordsHistory,
   updateVehicleRecord,
 } from "../services/vehicleRecordService.js";
@@ -78,10 +79,28 @@ async function getRecordsHistoryController(req, res, next) {
   }
 }
 
+async function getDailySummaryController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const date = req.body.date;
+
+    const dailySummary = await getDailySummary(Number(id), date);
+
+    return res.status(200).json({
+      succes: true,
+      message: "Resumen diario recuperado exitosamente",
+      data: dailySummary,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export {
   createVehicleEntryController,
   createVehicleExitController,
   getActiveRecordsByBranchController,
   updateVehicleRecordController,
   getRecordsHistoryController,
+  getDailySummaryController,
 };
