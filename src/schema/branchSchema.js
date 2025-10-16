@@ -37,42 +37,7 @@ const createBranchSchema = z
         .nonempty("El teléfono es requerido")
         .regex(/^\d{10}$/, "El teléfono debe tener 10 dígitos")
     ),
-
-    openingTime: z.preprocess(
-      (val) => (typeof val === "string" || val instanceof Date ? val : ""),
-      z
-        .string({
-          invalid_type_error: "La hora de apertura debe ser un string válido",
-        })
-        .nonempty("La hora de apertura es requerida")
-        .refine((val) => !isNaN(Date.parse(val)), {
-          message: "La hora de apertura no es válida",
-        })
-    ),
-
-    closingTime: z.preprocess(
-      (val) => (typeof val === "string" || val instanceof Date ? val : ""),
-      z
-        .string({
-          invalid_type_error: "La hora de cierre debe ser un string válido",
-        })
-        .nonempty("La hora de cierre es requerida")
-        .refine((val) => !isNaN(Date.parse(val)), {
-          message: "La hora de cierre no es válida",
-        })
-    ),
   })
-  .strict()
-  .refine(
-    (data) => {
-      const opening = new Date(data.openingTime);
-      const closing = new Date(data.closingTime);
-      return closing > opening;
-    },
-    {
-      message: "La hora de cierre debe ser mayor que la hora de apertura",
-      path: ["closingTime"], // el error se asigna al campo closingTime
-    }
-  );
+  .strict();
 
 export { createBranchSchema };
