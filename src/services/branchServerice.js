@@ -9,21 +9,21 @@ async function createBranch(newBranch) {
       city: newBranch.city,
       department: newBranch.department,
       phone: newBranch.phone,
-      openingTime: new Date(newBranch.openingTime),
-      closingTime: new Date(newBranch.closingTime),
     },
   });
   return branch;
 }
 
 async function getBranchById(branchId) {
-  const branch = await prisma.branch.findUnique({
+  return await prisma.branch.findUnique({
     where: { id: branchId },
+    include: {
+      schedules: {
+        where: { isActive: true },
+        orderBy: { dayOfWeek: "asc" },
+      },
+    },
   });
-  if (!branch) {
-    throw new NotFoundError("Esta sede no existe, por favor verifique.");
-  }
-  return branch;
 }
 
 async function getAllBranches() {
