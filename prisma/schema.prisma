@@ -47,6 +47,8 @@ model Branch {
   users         User[]
   zones         Zone[]
   subscriptions Subscription[]
+  vehicleRecords  VehicleRecord[]
+  vehicleTypes    VehicleType[]
 
   @@map("sedes")
 } 
@@ -88,10 +90,13 @@ model VehicleType {
   hourlyRate   Decimal       @map("tarifa_hora") @db.Decimal(10, 2)
   status       GenericStatus @default(active) @map("estado")
   creationDate DateTime      @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  branchId     Int           @map("id_sede")
 
   // Relations
   zones         Zone[]
+  branch        Branch      @relation(fields: [branchId], references: [id])
 
+  @@index([branchId])
   @@map("tipos_vehiculos")
 }
 
@@ -148,11 +153,13 @@ model VehicleRecord {
   totalToPay        Decimal?     @map("total_pagar") @db.Decimal(10, 2)
   observations      String?      @map("observaciones") @db.Text
   status            RecordStatus @default(active) @map("estado")
+  branchId          Int         @map("id_sede")
 
   // Relations
   space           Space       @relation(fields: [spaceId], references: [id])
   entryController User        @relation("EntryController", fields: [entryControllerId], references: [id])
   exitController  User?       @relation("ExitController", fields: [exitControllerId], references: [id])
+  branch          Branch      @relation(fields: [branchId], references: [id])
 
   @@index([spaceId])
   @@index([entryControllerId])
@@ -160,6 +167,7 @@ model VehicleRecord {
   @@index([entryDate], map: "idx_registros_fecha_entrada")
   @@index([licensePlate], map: "idx_registros_placa")
   @@index([status], map: "idx_registros_estado")
+  @@index([branchId])
   @@map("registros_vehiculos")
 }
 
