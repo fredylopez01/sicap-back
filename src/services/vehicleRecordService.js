@@ -1,12 +1,12 @@
 import prisma from "../db/prismaClient.js";
+import { ConflictDBError, NotFoundError } from "../models/Error.js";
 import {
-  ConflictDBError,
-  NotFoundError,
-  ParkingSpaceUnavailableError,
-} from "../models/Error.js";
+  getEndOfDay,
+  getStartOfDay,
+  parseDateLocal,
+} from "../utils/dateUtils.js";
 import {
   getHourlyRateBySpace,
-  getSpaceById,
   isAvailableSpace,
   updatePhysiclaStateSpace,
 } from "./SpaceService.js";
@@ -72,10 +72,11 @@ async function createVehicleExit(exitController, exitData) {
   return vehicleRecord;
 }
 
-async function getActiveRecords() {
+async function getActiveRecordsByBranch(branchId) {
   const records = await prisma.vehicleRecord.findMany({
     where: {
       status: "active",
+      branchId: branchId,
     },
     select: {
       id: true,
@@ -155,9 +156,124 @@ async function updateVehicleRecord(recordId, updateData) {
   return updateRecord;
 }
 
+async function getRecordsHistory(filters = {}) {
+  const {
+    branchId,
+    licensePlate,
+    entryControllerId,
+    exitControllerId,
+    status,
+    entryStartDate,
+    entryEndDate,
+    exitStartDate,
+    exitEndDate,
+  } = filters;
+
+  const records = await prisma.vehicleRecord.findMany({
+    where: {
+      ...(branchId && { space: { branchId } }),
+      ...(licensePlate && { licensePlate }),
+      ...(entryControllerId && { entryControllerId }),
+      ...(exitControllerId && { exitControllerId }),
+      ...(status && { status }),
+
+      // 🔹 Filtro por rango de fecha de entrada
+      ...(entryStartDate || entryEndDate
+        ? {
+            entryDate: {
+              ...(entryStartDate && { gte: new Date(entryStartDate) }),
+              ...(entryEndDate && { lte: new Date(entryEndDate) }),
+            },
+          }
+        : {}),
+
+      // 🔹 Filtro por rango de fecha de salida
+      ...(exitStartDate || exitEndDate
+        ? {
+            exitDate: {
+              ...(exitStartDate && { gte: new Date(exitStartDate) }),
+              ...(exitEndDate && { lte: new Date(exitEndDate) }),
+            },
+          }
+        : {}),
+    },
+    orderBy: {
+      entryDate: "desc",
+    },
+  });
+
+  return records;
+}
+
+async function getDailySummary(branchId, date) {
+  const dateObj = date ? parseDateLocal(date) : new Date();
+  const startOfDay = getStartOfDay(dateObj);
+  const endOfDay = getEndOfDay(dateObj);
+
+  const records = await prisma.vehicleRecord.findMany({
+    where: {
+      branchId,
+      OR: [
+        {
+          entryDate: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        {
+          exitDate: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      ],
+    },
+  });
+  const totals = getTotalsSummary(records, startOfDay, endOfDay);
+
+  return {
+    date: startOfDay.toISOString().split("T")[0],
+    branchId,
+    records,
+    totalVehiclesEntered: totals.totalVehiclesEntered,
+    totalVehiclesExited: totals.totalVehiclesExited,
+    totalRevenue: totals.totalRevenue,
+  };
+}
+
+function getTotalsSummary(records, startOfDay, endOfDay) {
+  const totalVehiclesEntered = records.filter(
+    (r) => r.entryDate >= startOfDay && r.entryDate <= endOfDay
+  ).length;
+
+  const totalVehiclesExited = records.filter(
+    (r) => r.exitDate && r.exitDate >= startOfDay && r.exitDate <= endOfDay
+  ).length;
+
+  const totalRevenue = records.reduce((sum, r) => {
+    if (
+      r.exitDate &&
+      r.exitDate >= startOfDay &&
+      r.exitDate <= endOfDay &&
+      r.totalToPay
+    ) {
+      sum += Number(r.totalToPay);
+    }
+    return sum;
+  }, 0);
+
+  return {
+    totalVehiclesEntered,
+    totalVehiclesExited,
+    totalRevenue,
+  };
+}
+
 export {
   createVehicleEntry,
   createVehicleExit,
-  getActiveRecords,
+  getActiveRecordsByBranch,
   updateVehicleRecord,
+  getRecordsHistory,
+  getDailySummary,
 };

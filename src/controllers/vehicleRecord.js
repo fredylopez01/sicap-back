@@ -1,8 +1,9 @@
-import { success } from "zod";
 import {
   createVehicleEntry,
   createVehicleExit,
-  getActiveRecords,
+  getActiveRecordsByBranch,
+  getDailySummary,
+  getRecordsHistory,
   updateVehicleRecord,
 } from "../services/vehicleRecordService.js";
 
@@ -32,9 +33,10 @@ async function createVehicleExitController(req, res, next) {
   }
 }
 
-async function getActiveRecordsController(req, res, next) {
+async function getActiveRecordsByBranchController(req, res, next) {
   try {
-    const activeRecords = await getActiveRecords();
+    const { id } = req.params;
+    const activeRecords = await getActiveRecordsByBranch(Number(id));
     return res.status(200).json({
       success: true,
       message: "Registros recuperados exitosamente",
@@ -62,9 +64,43 @@ async function updateVehicleRecordController(req, res, next) {
   }
 }
 
+async function getRecordsHistoryController(req, res, next) {
+  try {
+    const filters = req.body;
+    const filteredRecords = await getRecordsHistory(filters);
+
+    return res.status(200).json({
+      success: true,
+      message: "Registros encontrados correctamente",
+      data: filteredRecords,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getDailySummaryController(req, res, next) {
+  try {
+    const { id } = req.params;
+    const date = req.body.date;
+
+    const dailySummary = await getDailySummary(Number(id), date);
+
+    return res.status(200).json({
+      succes: true,
+      message: "Resumen diario recuperado exitosamente",
+      data: dailySummary,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export {
   createVehicleEntryController,
   createVehicleExitController,
-  getActiveRecordsController,
+  getActiveRecordsByBranchController,
   updateVehicleRecordController,
+  getRecordsHistoryController,
+  getDailySummaryController,
 };

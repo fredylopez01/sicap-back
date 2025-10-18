@@ -3,7 +3,9 @@ import { verifyToken } from "../middlewares/authMiddleware.js";
 import {
   createVehicleEntryController,
   createVehicleExitController,
-  getActiveRecordsController,
+  getActiveRecordsByBranchController,
+  getDailySummaryController,
+  getRecordsHistoryController,
   updateVehicleRecordController,
 } from "../controllers/vehicleRecord.js";
 
@@ -13,8 +15,12 @@ router.post("/entry", verifyToken, createVehicleEntryController); // Registrar i
 
 router.post("/exit", verifyToken, createVehicleExitController); // Registrar salida de un vehículo
 
-router.get("/active", verifyToken, getActiveRecordsController); // Obtener ingresos activos
+router.get("/active/:id", verifyToken, getActiveRecordsByBranchController); // Obtener ingresos activos de una sede
 
 router.put("/:id", verifyToken, updateVehicleRecordController); // Actualizar registro
+
+router.get("/filtered", verifyToken, getRecordsHistoryController); // Obtener registros filtrados
+
+router.get("/dailySummary/:id", verifyToken, getDailySummaryController); // Obtener resumen diario de una sede
 
 export default router;
