@@ -171,7 +171,7 @@ async function getRecordsHistory(filters = {}) {
 
   const records = await prisma.vehicleRecord.findMany({
     where: {
-      ...(branchId && { space: { branchId } }),
+      ...(branchId && { branchId }),
       ...(licensePlate && { licensePlate }),
       ...(entryControllerId && { entryControllerId }),
       ...(exitControllerId && { exitControllerId }),
@@ -196,6 +196,25 @@ async function getRecordsHistory(filters = {}) {
             },
           }
         : {}),
+    },
+    include: {
+      entryController: {
+        select: {
+          names: true,
+          lastNames: true,
+        },
+      },
+      exitController: {
+        select: {
+          names: true,
+          lastNames: true,
+        },
+      },
+      space: {
+        select: {
+          spaceNumber: true,
+        },
+      },
     },
     orderBy: {
       entryDate: "desc",
@@ -227,6 +246,25 @@ async function getDailySummary(branchId, date) {
           },
         },
       ],
+    },
+    include: {
+      entryController: {
+        select: {
+          names: true,
+          lastNames: true,
+        },
+      },
+      exitController: {
+        select: {
+          names: true,
+          lastNames: true,
+        },
+      },
+      space: {
+        select: {
+          spaceNumber: true,
+        },
+      },
     },
   });
   const totals = getTotalsSummary(records, startOfDay, endOfDay);

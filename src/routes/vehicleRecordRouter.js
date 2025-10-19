@@ -19,8 +19,8 @@ router.get("/active/:id", verifyToken, getActiveRecordsByBranchController); // O
 
 router.put("/:id", verifyToken, updateVehicleRecordController); // Actualizar registro
 
-router.get("/filtered", verifyToken, getRecordsHistoryController); // Obtener registros filtrados
+router.post("/filtered", verifyToken, getRecordsHistoryController); // Obtener registros filtrados
 
-router.get("/dailySummary/:id", verifyToken, getDailySummaryController); // Obtener resumen diario de una sede
+router.post("/dailySummary/:id", verifyToken, getDailySummaryController); // Obtener resumen diario de una sede
 
 export default router;
