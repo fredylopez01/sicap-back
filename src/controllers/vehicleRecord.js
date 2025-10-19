@@ -87,7 +87,7 @@ async function getDailySummaryController(req, res, next) {
     const dailySummary = await getDailySummary(Number(id), date);
 
     return res.status(200).json({
-      succes: true,
+      success: true,
       message: "Resumen diario recuperado exitosamente",
       data: dailySummary,
     });

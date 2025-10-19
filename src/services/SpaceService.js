@@ -1,5 +1,9 @@
 import prisma from "../db/prismaClient.js";
-import { ConflictDBError, NotFoundError } from "../models/Error.js";
+import {
+  ConflictDBError,
+  NotFoundError,
+  ParkingSpaceUnavailableError,
+} from "../models/Error.js";
 import { getVehicleTypeFromZone, getZoneById } from "./zoneService.js";
 
 // Crear espacios según la zona y su capacidad
