@@ -152,6 +152,13 @@ async function updateVehicleRecord(recordId, updateData) {
   const updateRecord = await prisma.vehicleRecord.update({
     where: { id: recordId },
     data: filteredData,
+    include: {
+      space: {
+        select: {
+          spaceNumber: true,
+        },
+      },
+    },
   });
   return updateRecord;
 }
