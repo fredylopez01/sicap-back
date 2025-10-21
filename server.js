@@ -10,6 +10,8 @@ import vehicleTypeRouter from "./src/routes/vehicleTypeRouter.js";
 import zoneRouter from "./src/routes/zoneRouter.js";
 import spaceRouter from "./src/routes/spaceRouter.js";
 import vehicleRecordRouter from "./src/routes/vehicleRecordRouter.js";
+import scheduleRouter from "./src/routes/scheduleRouter.js";
+import statsRouter from "./src/routes/statsRouter.js";
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ app.use("/api/vehicleTypes", vehicleTypeRouter);
 app.use("/api/zones", zoneRouter);
 app.use("/api/spaces", spaceRouter);
 app.use("/api/vehicleRecords", vehicleRecordRouter);
+app.use("/api/schedules", scheduleRouter);
+app.use("/api/stats", statsRouter);
 
 // Middleware de manejo de errores (al final)
 app.use(errorHandler);

@@ -1,4 +1,9 @@
 import prisma from "../db/prismaClient.js";
+import {
+  ConflictDBError,
+  NotFoundError,
+  ParkingSpaceUnavailableError,
+} from "../models/Error.js";
 import { getVehicleTypeFromZone, getZoneById } from "./zoneService.js";
 
 // Crear espacios según la zona y su capacidad
@@ -50,18 +55,42 @@ async function getSpaceById(spaceId) {
       id: spaceId,
     },
   });
+  if (!space) {
+    throw new NotFoundError("Este espacio no existe, por favor verifique.");
+  }
   return space;
 }
 
 async function getHourlyRateBySpace(spaceId) {
   // Encontrar el espacio
   const space = await getSpaceById(spaceId);
-  if (!space) {
-    throw new NotFoundError("Este espacio no existe, por favor verifique.");
-  }
   const vehicleType = await getVehicleTypeFromZone(space.zoneId);
 
   return vehicleType.hourlyRate;
+}
+
+async function updatePhysiclaStateSpace(spaceId, status) {
+  const space = await prisma.space.update({
+    where: { id: spaceId },
+    data: {
+      physicalStatus: status,
+    },
+  });
+  if (!space) {
+    throw new ConflictDBError(
+      "No fue posible actualizar el estado del espacio"
+    );
+  }
+}
+
+async function isAvailableSpace(spaceId) {
+  const space = await getSpaceById(spaceId);
+  if (space.physicalStatus !== "available") {
+    throw new ParkingSpaceUnavailableError(
+      `El espacio no está disponible (${space.physicalStatus})`
+    );
+  }
+  return true;
 }
 
 export {
@@ -70,4 +99,6 @@ export {
   getAllSpacesByZone,
   getSpaceById,
   getHourlyRateBySpace,
+  updatePhysiclaStateSpace,
+  isAvailableSpace,
 };

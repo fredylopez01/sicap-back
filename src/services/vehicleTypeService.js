@@ -3,6 +3,7 @@ import prisma from "../db/prismaClient.js";
 async function createVehicleType(newVehicleType) {
   const vehicleType = await prisma.vehicleType.create({
     data: {
+      branchId: newVehicleType.branchId,
       name: newVehicleType.name,
       description: newVehicleType.description,
       hourlyRate: newVehicleType.hourlyRate,
@@ -21,4 +22,18 @@ async function getAllVehicleTypes() {
   return await prisma.vehicleType.findMany();
 }
 
-export { createVehicleType, getVehicleTypeById, getAllVehicleTypes };
+async function getVehicleTypesByBranch(branchId) {
+  const vehicleTypes = await prisma.vehicleType.findMany({
+    where: {
+      branchId: branchId,
+    },
+  });
+  return vehicleTypes;
+}
+
+export {
+  createVehicleType,
+  getVehicleTypeById,
+  getAllVehicleTypes,
+  getVehicleTypesByBranch,
+};

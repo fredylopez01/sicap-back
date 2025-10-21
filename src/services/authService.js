@@ -28,6 +28,7 @@ async function loginUser(email, password) {
     id: user.id,
     email: user.email,
     role: user.role,
+    branchId: user.branchId,
   });
 
   const { password: _, ...userWithoutPassword } = user;

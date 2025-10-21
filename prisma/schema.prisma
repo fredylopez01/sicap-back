@@ -33,41 +33,42 @@ model Client {
 
 // Branch/Location table
 model Branch {
-  id          Int          @id @default(autoincrement()) @map("id_sede")
-  name        String       @map("nombre") @db.VarChar(100)
-  address     String       @map("direccion") @db.VarChar(255)
-  city        String       @map("ciudad") @db.VarChar(50)
-  department  String       @map("departamento") @db.VarChar(50)
-  phone       String?      @map("telefono") @db.VarChar(20)
-  openingTime DateTime     @default("1970-01-01T07:00:00.000Z") @map("horario_apertura") @db.Time(0)
-  closingTime DateTime     @default("1970-01-01T21:00:00.000Z") @map("horario_cierre") @db.Time(0)
-  status      BranchStatus @default(active) @map("estado")
+  id         Int          @id @default(autoincrement()) @map("id_sede")
+  name       String       @map("nombre") @db.VarChar(100)
+  address    String       @map("direccion") @db.VarChar(255)
+  city       String       @map("ciudad") @db.VarChar(50)
+  department String       @map("departamento") @db.VarChar(50)
+  phone      String?      @map("telefono") @db.VarChar(20)
+  status     BranchStatus @default(active) @map("estado")
 
   // Relations
-  users         User[]
-  zones         Zone[]
-  subscriptions Subscription[]
+  users          User[]
+  zones          Zone[]
+  subscriptions  Subscription[]
+  vehicleRecords VehicleRecord[]
+  vehicleTypes   VehicleType[]
+  schedules      Schedule[]
 
   @@map("sedes")
-} 
+}
 
 // user table
 model User {
-  id           Int        @id @default(autoincrement()) @map("id_controlador")
-  cedula       String     @unique @db.VarChar(20)
-  names        String     @map("nombres") @db.VarChar(100)
-  lastNames    String     @map("apellidos") @db.VarChar(100)
-  phone        String?    @map("telefono") @db.VarChar(20)
-  email        String     @unique @db.VarChar(100)
-  branchId     Int        @map("id_sede")
-  userHash     String     @unique @map("usuario_hash") @db.VarChar(255)
-  password     String     @map("password_hash") @db.VarChar(255)
-  role         UserRole   @default(CONTROLLER) @map("rol")
+  id            Int       @id @default(autoincrement()) @map("id_controlador")
+  cedula        String    @unique @db.VarChar(20)
+  names         String    @map("nombres") @db.VarChar(100)
+  lastNames     String    @map("apellidos") @db.VarChar(100)
+  phone         String?   @map("telefono") @db.VarChar(20)
+  email         String    @unique @db.VarChar(100)
+  branchId      Int       @map("id_sede")
+  userHash      String    @unique @map("usuario_hash") @db.VarChar(255)
+  password      String    @map("password_hash") @db.VarChar(255)
+  role          UserRole  @default(CONTROLLER) @map("rol")
   isActive      Boolean   @default(true)
-  hireDate     DateTime   @map("fecha_ingreso") @db.Date
-  createdAt    DateTime   @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  updatedAt    DateTime  @updatedAt
-  lockUntil    DateTime?
+  hireDate      DateTime  @map("fecha_ingreso") @db.Date
+  createdAt     DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  updatedAt     DateTime  @updatedAt
+  lockUntil     DateTime?
   loginAttempts Int       @default(0)
   lastLogin     DateTime?
 
@@ -88,10 +89,13 @@ model VehicleType {
   hourlyRate   Decimal       @map("tarifa_hora") @db.Decimal(10, 2)
   status       GenericStatus @default(active) @map("estado")
   creationDate DateTime      @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  branchId     Int           @map("id_sede")
 
   // Relations
-  zones         Zone[]
+  zones  Zone[]
+  branch Branch @relation(fields: [branchId], references: [id])
 
+  @@index([branchId])
   @@map("tipos_vehiculos")
 }
 
@@ -148,11 +152,13 @@ model VehicleRecord {
   totalToPay        Decimal?     @map("total_pagar") @db.Decimal(10, 2)
   observations      String?      @map("observaciones") @db.Text
   status            RecordStatus @default(active) @map("estado")
+  branchId          Int          @map("id_sede")
 
   // Relations
-  space           Space       @relation(fields: [spaceId], references: [id])
-  entryController User        @relation("EntryController", fields: [entryControllerId], references: [id])
-  exitController  User?       @relation("ExitController", fields: [exitControllerId], references: [id])
+  space           Space  @relation(fields: [spaceId], references: [id])
+  entryController User   @relation("EntryController", fields: [entryControllerId], references: [id])
+  exitController  User?  @relation("ExitController", fields: [exitControllerId], references: [id])
+  branch          Branch @relation(fields: [branchId], references: [id])
 
   @@index([spaceId])
   @@index([entryControllerId])
@@ -160,6 +166,7 @@ model VehicleRecord {
   @@index([entryDate], map: "idx_registros_fecha_entrada")
   @@index([licensePlate], map: "idx_registros_placa")
   @@index([status], map: "idx_registros_estado")
+  @@index([branchId])
   @@map("registros_vehiculos")
 }
 
@@ -177,14 +184,32 @@ model Subscription {
   creationDate     DateTime           @default(now()) @map("fecha_creacion") @db.Timestamp(0)
 
   // Relations
-  client      Client      @relation(fields: [clientId], references: [id])
-  branch      Branch      @relation(fields: [branchId], references: [id])
-  space       Space?      @relation(fields: [assignedSpace], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
+  branch Branch @relation(fields: [branchId], references: [id])
+  space  Space? @relation(fields: [assignedSpace], references: [id])
 
   @@index([clientId])
   @@index([branchId])
   @@index([assignedSpace])
   @@map("suscripciones")
+}
+
+// Schedule table
+model Schedule {
+  id          Int       @id @default(autoincrement()) @map("id_horario")
+  branchId    Int       @map("id_sede")
+  dayOfWeek   DayOfWeek @map("dia_semana")
+  openingTime DateTime  @map("hora_apertura") @db.Time(0)
+  closingTime DateTime  @map("hora_cierre") @db.Time(0)
+  isActive    Boolean   @default(true) @map("activo")
+  createdAt   DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+
+  // Relations
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, dayOfWeek], map: "unique_sede_dia")
+  @@index([branchId])
+  @@map("horarios")
 }
 
 // Enums
@@ -237,4 +262,14 @@ enum SubscriptionStatus {
   active    @map("activa")
   expired   @map("vencida")
   cancelled @map("cancelada")
+}
+
+enum DayOfWeek {
+  monday    @map("lunes")
+  tuesday   @map("martes")
+  wednesday @map("miercoles")
+  thursday  @map("jueves")
+  friday    @map("viernes")
+  saturday  @map("sabado")
+  sunday    @map("domingo")
 }

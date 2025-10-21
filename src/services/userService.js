@@ -6,6 +6,15 @@ import { getBranchById } from "./branchServerice.js";
 async function getUserByEmail(email) {
   return await prisma.user.findUnique({
     where: { email },
+    include: {
+      branch: {
+        select: {
+          name: true,
+          address: true,
+          city: true,
+        },
+      },
+    },
   });
 }
 
@@ -48,10 +57,7 @@ async function validateNewUser(newUser) {
   }
 
   // Verificar si la branch existe
-  const branch = await getBranchById(newUser.branchId);
-  if (!branch) {
-    throw new NotFoundError("Esta sede no existe, por favor verifique.");
-  }
+  await getBranchById(newUser.branchId);
 
   // Verificar nombre de usuario
   if (await getUserByUsername(newUser.userHash)) {
@@ -63,14 +69,18 @@ async function getAllUsers() {
   return await prisma.user.findMany({
     select: {
       id: true,
+      names: true,
+      lastNames: true,
+      phone: true,
       email: true,
+      branchId: true,
+      userHash: true,
       role: true,
       isActive: true,
+      hireDate: true,
       createdAt: true,
       updatedAt: true,
       lastLogin: true,
-      loginAttempts: true,
-      lockUntil: true,
     },
   });
 }
@@ -116,6 +126,115 @@ async function getUserByUsername(username) {
   });
 }
 
+async function getUserById(userId) {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  if (!user) {
+    throw new NotFoundError("Esta usuario no existe, por favor verifique.");
+  }
+  return user;
+}
+
+async function updateUser(userId, updateData, actingUser) {
+  const user = await getUserById(userId);
+
+  // Validar permisos
+  if (actingUser.role === "CONTROLLER" && actingUser.id !== userId) {
+    throw new ConflictDBError(
+      "No tiene permisos para modificar a otros usuarios."
+    );
+  }
+
+  // Campos permitidos por rol
+  let allowedFields = [];
+  if (actingUser.role === "ADMIN") {
+    allowedFields = [
+      "names",
+      "lastNames",
+      "phone",
+      "email",
+      "role",
+      "isActive",
+      "branchId",
+      "hireDate",
+      "userHash",
+    ];
+  } else {
+    allowedFields = ["names", "lastNames", "phone", "email", "userHash"];
+  }
+
+  // Filtrar datos no permitidos
+  const filteredData = {};
+  for (const key of allowedFields) {
+    if (updateData[key] !== undefined) {
+      filteredData[key] = updateData[key];
+    }
+  }
+
+  if (Object.keys(filteredData).length === 0) {
+    throw new ConflictDBError(
+      "No se proporcionaron campos válidos para actualizar."
+    );
+  }
+
+  // Si se cambia el email, verificar duplicado
+  if (filteredData.email && filteredData.email !== user.email) {
+    const existingEmail = await getUserByEmail(filteredData.email);
+    if (existingEmail) {
+      throw new ConflictDBError("Este correo electrónico ya está en uso.");
+    }
+  }
+
+  // Actualizar usuario
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: filteredData,
+  });
+
+  const { password, ...userWithoutPassword } = updatedUser;
+  return userWithoutPassword;
+}
+
+async function deleteUser(userId) {
+  // 1. Verificar si el usuario existe
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      entryRecords: true,
+      exitRecords: true,
+    },
+  });
+
+  if (!user) {
+    throw new NotFoundError("El usuario no existe.");
+  }
+
+  // 2. Verificar si tiene registros asociados
+  const hasRecords =
+    (user.entryRecords && user.entryRecords.length > 0) ||
+    (user.exitRecords && user.exitRecords.length > 0);
+
+  // 3. Si tiene registros, solo desactivar
+  if (hasRecords) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isActive: false },
+    });
+
+    return "El usuario tiene registros asociados, por lo tanto fue desactivado en lugar de eliminado.";
+  }
+
+  // 4. Si no tiene registros, eliminar completamente
+  await prisma.user.delete({
+    where: { id: userId },
+  });
+
+  return "Usuario eliminado exitosamente.";
+}
+
 export {
   getUserByEmail,
   createUser,
@@ -125,4 +244,7 @@ export {
   updateLastLogin,
   getUserByDocument,
   getUserByUsername,
+  getUserById,
+  updateUser,
+  deleteUser,
 };

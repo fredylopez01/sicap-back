@@ -2,6 +2,11 @@ import { z } from "zod";
 
 const createVehicleTypeSchema = z
   .object({
+    branchId: z.number({
+      required_error: "El parqueadero es requerida",
+      invalid_type_error: "El id del parqueadero debe ser un número",
+    }),
+
     name: z.preprocess(
       (val) => (val == null ? "" : val),
       z
