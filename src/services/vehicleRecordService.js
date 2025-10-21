@@ -1,5 +1,9 @@
 import prisma from "../db/prismaClient.js";
-import { ConflictDBError, NotFoundError } from "../models/Error.js";
+import {
+  BusinessConflictError,
+  ConflictDBError,
+  NotFoundError,
+} from "../models/Error.js";
 import {
   getEndOfDay,
   getStartOfDay,
@@ -52,6 +56,8 @@ async function createVehicleExit(exitController, exitData) {
 
   const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
+  console.log(parkedHours);
+
   const totalToPay = parkedHours * entry.appliedRate;
 
   const vehicleRecord = await prisma.vehicleRecord.update({
@@ -114,18 +120,23 @@ async function getRecordById(vehicleRecordId) {
   if (!record) {
     throw new NotFoundError("Este registro no existe, por favor verifique.");
   }
+  return record;
 }
 
 async function updateVehicleRecord(recordId, updateData) {
   // Verificar si el registro existe
-  await getRecordById(recordId);
+  const record = await getRecordById(recordId);
+  if (record.exitDate !== null) {
+    throw new BusinessConflictError(
+      "Un registro no puede ser modificado después de registrar la salida"
+    );
+  }
 
   // Definir campos con posibles actualizaciones
   let allowedFields = [
     "appliedRate",
     "licensePlate",
     "observations",
-    "parkedHours",
     "spaceId",
   ];
 
@@ -147,6 +158,15 @@ async function updateVehicleRecord(recordId, updateData) {
   if (spaceId !== undefined) {
     await isAvailableSpace(spaceId);
   }
+
+  const appliedRate =
+    filteredData["appliedRate"] !== undefined
+      ? filteredData["appliedRate"]
+      : record.appliedRate;
+  const totalToPay = record.parkedHours * appliedRate;
+  console.log(record.parkedHours, totalToPay, appliedRate);
+
+  filteredData["totalToPay"] = totalToPay;
 
   // Actualizar registro
   const updateRecord = await prisma.vehicleRecord.update({
@@ -273,6 +293,9 @@ async function getDailySummary(branchId, date) {
         },
       },
     },
+    orderBy: {
+      entryDate: "desc",
+    },
   });
   const totals = getTotalsSummary(records, startOfDay, endOfDay);
 
@@ -314,6 +337,24 @@ function getTotalsSummary(records, startOfDay, endOfDay) {
   };
 }
 
+async function getAllActiveRecordsByBranch(branchId) {
+  const activeRecords = await prisma.vehicleRecord.findMany({
+    where: {
+      branchId,
+      status: "active",
+      exitDate: null,
+    },
+    include: {
+      space: {
+        include: {
+          zone: true,
+        },
+      },
+    },
+  });
+  return activeRecords;
+}
+
 export {
   createVehicleEntry,
   createVehicleExit,
@@ -321,4 +362,5 @@ export {
   updateVehicleRecord,
   getRecordsHistory,
   getDailySummary,
+  getAllActiveRecordsByBranch,
 };

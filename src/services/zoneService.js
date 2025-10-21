@@ -62,4 +62,30 @@ async function getVehicleTypeFromZone(zoneId) {
   return vehicleType;
 }
 
-export { createZone, getZoneById, getAllZonesByBranch, getVehicleTypeFromZone };
+async function getAllActiveZonesByBranch(branchId) {
+  const zones = await prisma.zone.findMany({
+    where: {
+      branchId,
+      status: "active",
+    },
+    include: {
+      vehicleType: true,
+      spaces: {
+        where: {
+          physicalStatus: {
+            in: ["available", "occupied", "reserved"],
+          },
+        },
+      },
+    },
+  });
+  return zones;
+}
+
+export {
+  createZone,
+  getZoneById,
+  getAllZonesByBranch,
+  getVehicleTypeFromZone,
+  getAllActiveZonesByBranch,
+};
