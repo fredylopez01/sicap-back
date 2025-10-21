@@ -6,6 +6,15 @@ import { getBranchById } from "./branchServerice.js";
 async function getUserByEmail(email) {
   return await prisma.user.findUnique({
     where: { email },
+    include: {
+      branch: {
+        select: {
+          name: true,
+          address: true,
+          city: true,
+        },
+      },
+    },
   });
 }
 
