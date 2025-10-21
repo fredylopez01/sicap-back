@@ -59,6 +59,12 @@ class ParkingSpaceUnavailableError extends AppError {
   }
 }
 
+class BusinessConflictError extends AppError {
+  constructor(message = "Alguna regla de negocio esta siendo infringida") {
+    super(message, 400);
+  }
+}
+
 export {
   AppError,
   UnauthorizedError,
@@ -69,4 +75,5 @@ export {
   ConflictDBError,
   BadRequestError,
   ParkingSpaceUnavailableError,
+  BusinessConflictError,
 };
