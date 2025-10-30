@@ -66,13 +66,30 @@ async function updateVehicleRecordController(req, res, next) {
 
 async function getRecordsHistoryController(req, res, next) {
   try {
-    const filters = req.body;
-    const filteredRecords = await getRecordsHistory(filters);
+    const { page = 1, pageSize = 10, ...filters } = req.body;
+
+    // Obtener datos y conteo total
+    const { records, totalRecords } = await getRecordsHistory(
+      filters,
+      page,
+      pageSize
+    );
+
+    // Calcular número total de páginas
+    const totalPages = Math.ceil(totalRecords / pageSize);
 
     return res.status(200).json({
       success: true,
       message: "Registros encontrados correctamente",
-      data: filteredRecords,
+      data: {
+        records,
+        pagination: {
+          totalRecords,
+          totalPages,
+          currentPage: page,
+          pageSize,
+        },
+      },
     });
   } catch (error) {
     next(error);
