@@ -24,7 +24,7 @@ app.use(express.json());
 
 // Ruta base
 app.get("/", (req, res) => {
-  res.send("🚗 SICAP Backend is running!");
+  res.send("SICAP Backend is running!");
 });
 
 // Rutas
@@ -42,5 +42,5 @@ app.use("/api/stats", statsRouter);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
