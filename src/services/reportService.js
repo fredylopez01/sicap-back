@@ -9,7 +9,7 @@ async function getParkingReportService({ branchId, type, startDate, endDate }) {
   }
 
   switch (type) {
-    // 📊 1. Reporte de actividad general
+    // 1. Reporte de actividad general
     case "activity": {
       const total = await prisma.vehicleRecord.count({ where: { branchId } });
       const active = await prisma.vehicleRecord.count({
@@ -29,7 +29,7 @@ async function getParkingReportService({ branchId, type, startDate, endDate }) {
       };
     }
 
-    // 💰 2. Reporte de ingresos por rango de fechas
+    // 2. Reporte de ingresos por rango de fechas
     case "income": {
       const records = await prisma.vehicleRecord.findMany({
         where: {
@@ -58,7 +58,7 @@ async function getParkingReportService({ branchId, type, startDate, endDate }) {
       };
     }
 
-    // 🏗️ 3. Uso de espacios por zonas
+    // 3. Uso de espacios por zonas
     case "usage": {
       const zones = await prisma.zone.findMany({
         where: { branchId },
@@ -95,7 +95,7 @@ async function getParkingReportService({ branchId, type, startDate, endDate }) {
       };
     }
 
-    // 🧍‍♂️ 4. Actividad por controlador
+    // 4. Actividad por controlador
     case "controllers": {
       const controllers = await prisma.user.findMany({
         where: { branchId },

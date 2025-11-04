@@ -1,15 +1,9 @@
-import { getParkingReportService } from "../services/reportService";
+import { getParkingReportService } from "../services/reportService.js";
 
 export async function getParkingReportController(req, res, next) {
   try {
-    const { branchId, type = "activity", startDate, endDate } = req.query;
-
-    if (!branchId) {
-      return res.status(400).json({
-        success: false,
-        message: "El parámetro branchId es obligatorio.",
-      });
-    }
+    const { type = "activity", startDate, endDate } = req.body;
+    const branchId = req.user.branchId;
 
     const report = await getParkingReportService({
       branchId: Number(branchId),
