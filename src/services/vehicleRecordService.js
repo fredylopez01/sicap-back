@@ -56,7 +56,6 @@ async function createVehicleExit(exitController, exitData) {
 
   const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
-  console.log(parkedHours);
 
   const totalToPay = parkedHours * entry.appliedRate;
 
@@ -164,7 +163,6 @@ async function updateVehicleRecord(recordId, updateData) {
       ? filteredData["appliedRate"]
       : record.appliedRate;
   const totalToPay = record.parkedHours * appliedRate;
-  console.log(record.parkedHours, totalToPay, appliedRate);
 
   filteredData["totalToPay"] = totalToPay;
 
