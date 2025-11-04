@@ -163,7 +163,6 @@ async function updateVehicleRecord(recordId, updateData) {
       ? filteredData["appliedRate"]
       : record.appliedRate;
   const totalToPay = record.parkedHours * appliedRate;
-  console.log(record.parkedHours, totalToPay, appliedRate);
 
   filteredData["totalToPay"] = totalToPay;
 
