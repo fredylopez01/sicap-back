@@ -16,7 +16,7 @@ import {
 } from "./SpaceService.js";
 
 async function createVehicleEntry(entryController, vehicleRecord) {
-  if (await getRecordByPlate(vehicleRecord.licensePlate)) {
+  if (await getRecordByPlate(vehicleRecord.licensePlate.toUpperCase())) {
     throw new ConflictDBError(
       "Este vehículo ya ingreso a este u otro parqueadero pero no se ha registrado su salida"
     );
@@ -28,7 +28,7 @@ async function createVehicleEntry(entryController, vehicleRecord) {
 
   const newVehicleRecord = await prisma.vehicleRecord.create({
     data: {
-      licensePlate: vehicleRecord.licensePlate,
+      licensePlate: vehicleRecord.licensePlate.toUpperCase(),
       spaceId: vehicleRecord.spaceId,
       entryControllerId: entryController.id,
       appliedRate: appliedRate,
@@ -43,7 +43,7 @@ async function createVehicleEntry(entryController, vehicleRecord) {
 async function createVehicleExit(exitController, exitData) {
   const entry = await prisma.vehicleRecord.findFirst({
     where: {
-      licensePlate: exitData.licensePlate,
+      licensePlate: exitData.licensePlate.toUpperCase(),
       status: "active",
     },
   });
@@ -56,7 +56,6 @@ async function createVehicleExit(exitController, exitData) {
 
   const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
-  console.log(parkedHours);
 
   const totalToPay = parkedHours * entry.appliedRate;
 
