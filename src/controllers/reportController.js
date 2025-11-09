@@ -2,7 +2,7 @@ import { getParkingReportService } from "../services/reportService.js";
 
 export async function getParkingReportController(req, res, next) {
   try {
-    const { type = "activity", startDate, endDate } = req.body;
+    const { type = "general", startDate, endDate } = req.body;
     const branchId = req.user.branchId;
 
     const report = await getParkingReportService({
