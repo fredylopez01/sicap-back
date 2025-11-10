@@ -16,7 +16,7 @@ import {
 } from "./SpaceService.js";
 
 async function createVehicleEntry(entryController, vehicleRecord) {
-  if (await getRecordByPlate(vehicleRecord.licensePlate)) {
+  if (await getRecordByPlate(vehicleRecord.licensePlate.toUpperCase())) {
     throw new ConflictDBError(
       "Este vehículo ya ingreso a este u otro parqueadero pero no se ha registrado su salida"
     );
@@ -28,7 +28,7 @@ async function createVehicleEntry(entryController, vehicleRecord) {
 
   const newVehicleRecord = await prisma.vehicleRecord.create({
     data: {
-      licensePlate: vehicleRecord.licensePlate,
+      licensePlate: vehicleRecord.licensePlate.toUpperCase(),
       spaceId: vehicleRecord.spaceId,
       entryControllerId: entryController.id,
       appliedRate: appliedRate,
@@ -43,7 +43,7 @@ async function createVehicleEntry(entryController, vehicleRecord) {
 async function createVehicleExit(exitController, exitData) {
   const entry = await prisma.vehicleRecord.findFirst({
     where: {
-      licensePlate: exitData.licensePlate,
+      licensePlate: exitData.licensePlate.toUpperCase(),
       status: "active",
     },
   });
@@ -56,7 +56,6 @@ async function createVehicleExit(exitController, exitData) {
 
   const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
-  console.log(parkedHours);
 
   const totalToPay = parkedHours * entry.appliedRate;
 
@@ -164,7 +163,6 @@ async function updateVehicleRecord(recordId, updateData) {
       ? filteredData["appliedRate"]
       : record.appliedRate;
   const totalToPay = record.parkedHours * appliedRate;
-  console.log(record.parkedHours, totalToPay, appliedRate);
 
   filteredData["totalToPay"] = totalToPay;
 
@@ -183,7 +181,7 @@ async function updateVehicleRecord(recordId, updateData) {
   return updateRecord;
 }
 
-async function getRecordsHistory(filters = {}) {
+async function getRecordsHistory(filters = {}, page = 1, pageSize = 10) {
   const {
     branchId,
     licensePlate,
@@ -196,59 +194,76 @@ async function getRecordsHistory(filters = {}) {
     exitEndDate,
   } = filters;
 
-  const records = await prisma.vehicleRecord.findMany({
-    where: {
-      ...(branchId && { branchId }),
-      ...(licensePlate && { licensePlate }),
-      ...(entryControllerId && { entryControllerId }),
-      ...(exitControllerId && { exitControllerId }),
-      ...(status && { status }),
+  // Calcular los límites de paginación
+  const skip = (page - 1) * pageSize;
+  const take = parseInt(pageSize);
 
-      // 🔹 Filtro por rango de fecha de entrada
-      ...(entryStartDate || entryEndDate
-        ? {
-            entryDate: {
-              ...(entryStartDate && { gte: new Date(entryStartDate) }),
-              ...(entryEndDate && { lte: new Date(entryEndDate) }),
-            },
-          }
-        : {}),
+  // Construir el objeto `where` dinámicamente
+  const where = {
+    ...(branchId && { branchId }),
+    ...(licensePlate && { licensePlate }),
+    ...(entryControllerId && { entryControllerId }),
+    ...(exitControllerId && { exitControllerId }),
+    ...(status && { status }),
 
-      // 🔹 Filtro por rango de fecha de salida
-      ...(exitStartDate || exitEndDate
-        ? {
-            exitDate: {
-              ...(exitStartDate && { gte: new Date(exitStartDate) }),
-              ...(exitEndDate && { lte: new Date(exitEndDate) }),
-            },
-          }
-        : {}),
-    },
-    include: {
-      entryController: {
-        select: {
-          names: true,
-          lastNames: true,
+    ...(entryStartDate || entryEndDate
+      ? {
+          entryDate: {
+            ...(entryStartDate && { gte: new Date(entryStartDate) }),
+            ...(entryEndDate && { lte: new Date(entryEndDate) }),
+          },
+        }
+      : {}),
+
+    ...(exitStartDate || exitEndDate
+      ? {
+          exitDate: {
+            ...(exitStartDate && { gte: new Date(exitStartDate) }),
+            ...(exitEndDate && { lte: new Date(exitEndDate) }),
+          },
+        }
+      : {}),
+  };
+
+  // Obtener los registros paginados
+  const [records, totalRecords] = await Promise.all([
+    prisma.vehicleRecord.findMany({
+      where,
+      include: {
+        entryController: {
+          select: {
+            names: true,
+            lastNames: true,
+          },
+        },
+        exitController: {
+          select: {
+            names: true,
+            lastNames: true,
+          },
+        },
+        space: {
+          select: {
+            spaceNumber: true,
+          },
+        },
+        branch: {
+          select: {
+            name: true,
+            address: true,
+          },
         },
       },
-      exitController: {
-        select: {
-          names: true,
-          lastNames: true,
-        },
+      orderBy: {
+        entryDate: "desc",
       },
-      space: {
-        select: {
-          spaceNumber: true,
-        },
-      },
-    },
-    orderBy: {
-      entryDate: "desc",
-    },
-  });
+      skip,
+      take,
+    }),
+    prisma.vehicleRecord.count({ where }),
+  ]);
 
-  return records;
+  return { records, totalRecords };
 }
 
 async function getDailySummary(branchId, date) {

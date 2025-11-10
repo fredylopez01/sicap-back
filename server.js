@@ -12,6 +12,7 @@ import spaceRouter from "./src/routes/spaceRouter.js";
 import vehicleRecordRouter from "./src/routes/vehicleRecordRouter.js";
 import scheduleRouter from "./src/routes/scheduleRouter.js";
 import statsRouter from "./src/routes/statsRouter.js";
+import reportRouter from "./src/routes/reportRouter.js";
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(express.json());
 
 // Ruta base
 app.get("/", (req, res) => {
-  res.send("🚗 SICAP Backend is running!");
+  res.send("SICAP Backend is running!");
 });
 
 // Rutas
@@ -37,10 +38,11 @@ app.use("/api/spaces", spaceRouter);
 app.use("/api/vehicleRecords", vehicleRecordRouter);
 app.use("/api/schedules", scheduleRouter);
 app.use("/api/stats", statsRouter);
+app.use("/api/reports", reportRouter);
 
 // Middleware de manejo de errores (al final)
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

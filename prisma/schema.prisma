@@ -147,7 +147,7 @@ model VehicleRecord {
   exitControllerId  Int?         @map("id_controlador_salida")
   entryDate         DateTime     @default(now()) @map("fecha_entrada") @db.Timestamp(0)
   exitDate          DateTime?    @map("fecha_salida") @db.Timestamp(0)
-  parkedHours       Decimal?     @map("horas_estacionado") @db.Decimal(4, 2)
+  parkedHours       Decimal?     @map("horas_estacionado") @db.Decimal(10, 2)
   appliedRate       Decimal      @map("tarifa_aplicada") @db.Decimal(10, 2)
   totalToPay        Decimal?     @map("total_pagar") @db.Decimal(10, 2)
   observations      String?      @map("observaciones") @db.Text
