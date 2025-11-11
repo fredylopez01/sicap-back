@@ -48,6 +48,93 @@ async function getAllZonesByBranch(branchId) {
   });
 }
 
+async function updateZone(zoneId, updateData) {
+  const zone = await getZoneById(zoneId);
+  const allowedFields = ["name", "description", "vehicleTypeId", "status"];
+  const filteredData = {};
+  for (const key of allowedFields) {
+    if (updateData[key] !== undefined) {
+      filteredData[key] = updateData[key];
+    }
+  }
+
+  if (Object.keys(filteredData).length === 0) {
+    throw new ConflictDBError(
+      "No se proporcionaron campos válidos para actualizar."
+    );
+  }
+
+  if (filteredData.vehicleTypeId) {
+    const vehicleType = await getVehicleTypeById(filteredData.vehicleTypeId);
+    if (!vehicleType) {
+      throw new NotFoundError(
+        "El tipo de vehículo especificado no existe, por favor verifique."
+      );
+    }
+  }
+
+  const updatedZone = await prisma.zone.update({
+    where: { id: zoneId },
+    data: filteredData,
+  });
+
+  return updatedZone;
+}
+
+async function deleteZone(zoneId) {
+  const zone = await prisma.zone.findUnique({
+    where: { id: zoneId },
+    include: {
+      spaces: {
+        include: {
+          records: {
+            where: {
+              status: "active"
+            }
+          },
+          subscriptions: true
+        }
+      }
+    }
+  });
+
+  if (!zone) {
+    throw new NotFoundError("La zona no existe");
+  }
+
+  const hasActiveRecords = zone.spaces.some(
+    space => space.records.length > 0
+  );
+
+  if (hasActiveRecords) {
+    throw new ConflictDBError(
+      "No se puede eliminar la zona porque tiene vehículos actualmente estacionados"
+    );
+  }
+
+  const hasSubscriptions = zone.spaces.some(
+    space => space.subscriptions && space.subscriptions.length > 0
+  );
+
+  if (hasSubscriptions) {
+    throw new ConflictDBError(
+      "No se puede eliminar la zona porque tiene suscripciones asociadas"
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.space.deleteMany({
+      where: { zoneId: zoneId }
+    });
+
+    await tx.zone.delete({
+      where: { id: zoneId }
+    });
+  });
+
+  return { message: "Zona eliminada exitosamente" };
+}
+
 async function getVehicleTypeFromZone(zoneId) {
   const zone = await getZoneById(zoneId);
   if (!zone) {
@@ -86,6 +173,8 @@ export {
   createZone,
   getZoneById,
   getAllZonesByBranch,
+  updateZone,
+  deleteZone,
   getVehicleTypeFromZone,
   getAllActiveZonesByBranch,
 };

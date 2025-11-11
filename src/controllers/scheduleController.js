@@ -4,7 +4,8 @@ import {
     getSchedulesByBranch,
     getScheduleByDay,
     updateSchedule,
-    deleteSchedule,
+    hardDeleteSchedule,
+    hardDeleteAllSchedulesByBranch,
 } from "../services/scheduleService.js";
 
 // Crear un horario individual
@@ -95,7 +96,7 @@ async function updateScheduleController(req, res, next) {
 async function deleteScheduleController(req, res, next) {
     try {
         const scheduleId = parseInt(req.params.scheduleId, 10);
-        await deleteSchedule(scheduleId);
+        await hardDeleteSchedule(scheduleId);
         return res.status(200).json({
             success: true,
             message: "Horario eliminado exitosamente",
@@ -105,6 +106,30 @@ async function deleteScheduleController(req, res, next) {
     }
 }
 
+async function hardDeleteAllBranchSchedules(req, res, next) {
+    try {
+        const { branchId } = req.params;
+
+        // Validar que branchId sea un número válido
+        const id = parseInt(branchId);
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "El ID de la sede debe ser un número válido",
+            });
+        }
+
+        const result = await hardDeleteAllSchedulesByBranch(id);
+
+        res.status(200).json({
+            success: true,
+            ...result,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export {
     createScheduleController,
     createMultipleSchedulesController,
@@ -112,4 +137,5 @@ export {
     getScheduleByDayController,
     updateScheduleController,
     deleteScheduleController,
+    hardDeleteAllBranchSchedules,
 };

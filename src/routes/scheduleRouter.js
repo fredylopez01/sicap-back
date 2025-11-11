@@ -13,6 +13,7 @@ import {
     getScheduleByDayController,
     updateScheduleController,
     deleteScheduleController,
+    hardDeleteAllBranchSchedules,
 } from "../controllers/scheduleController.js";
 
 const router = express.Router();
@@ -65,5 +66,7 @@ router.delete(
     checkRole("ADMIN"),
     deleteScheduleController
 );
+
+router.delete("/branch/:branchId/all/permanent", hardDeleteAllBranchSchedules);
 
 export default router;

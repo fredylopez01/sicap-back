@@ -132,7 +132,7 @@ async function getSchedulesByBranch(branchId) {
 async function getScheduleByDay(branchId, dayOfWeek) {
   const schedule = await prisma.schedule.findUnique({
     where: {
-      unique_sede_dia: {
+      branchId_dayOfWeek: {
         branchId: branchId,
         dayOfWeek: dayOfWeek,
       },
@@ -230,6 +230,35 @@ async function hardDeleteSchedule(scheduleId) {
   return { message: "Horario eliminado permanentemente" };
 }
 
+async function hardDeleteAllSchedulesByBranch(branchId) {
+  // Verificar si la sede existe
+  const branch = await getBranchById(branchId);
+  if (!branch) {
+    throw new NotFoundError(`La sede con ID ${branchId} no existe`);
+  }
+
+  // Obtener el conteo antes de eliminar para el mensaje
+  const schedulesToDelete = await prisma.schedule.count({
+    where: {
+      branchId: branchId,
+    },
+  });
+
+  // Eliminar permanentemente todos los horarios
+  const result = await prisma.schedule.deleteMany({
+    where: {
+      branchId: branchId,
+    },
+  });
+
+  return {
+    message: `Se eliminaron permanentemente ${result.count} horarios de la sede ${branch.name}`,
+    count: result.count,
+    branchId: branchId,
+  };
+}
+
+
 export {
   createSchedule,
   createMultipleSchedules,
@@ -238,4 +267,5 @@ export {
   updateSchedule,
   deleteSchedule,
   hardDeleteSchedule,
+  hardDeleteAllSchedulesByBranch,
 };
