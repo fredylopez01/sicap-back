@@ -7,7 +7,7 @@ import {
 } from "../controllers/userController.js";
 import { checkRole, verifyToken } from "../middlewares/authMiddleware.js";
 import { validateSchema } from "../middlewares/validate.js";
-import { createUserSchema } from "../schema/UserSchema.js";
+import { createUserSchema } from "../schema/userSchema.js";
 
 const router = express.Router();
 

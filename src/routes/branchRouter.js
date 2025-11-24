@@ -3,6 +3,7 @@ import {
   createBranchController,
   deleteBranchController,
   getAllBranchesController,
+  getBranchByIdController,
   updateBranchController,
 } from "../controllers/branchController.js";
 import { validateSchema } from "../middlewares/validate.js";
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/", validateSchema(createBranchSchema), createBranchController); // Crear una sede
 router.get("/", verifyToken, checkRole("ADMIN"), getAllBranchesController); // Obtener todos las sedes
+router.get("/:id", verifyToken, getBranchByIdController);
 
 router.put("/:id", verifyToken, updateBranchController); // Actualizar datos de un usuario
 
