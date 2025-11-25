@@ -24,7 +24,29 @@ async function createVehicleEntry(entryController, vehicleRecord) {
 
   await isAvailableSpace(vehicleRecord.spaceId);
 
-  const appliedRate = await getHourlyRateBySpace(vehicleRecord.spaceId);
+  const scheduleType = vehicleRecord.scheduleType || "DIURNO";
+  let appliedRate;
+
+  if (scheduleType === "NOCTURNO") {
+    // Obtener la tarifa nocturna de la sede
+    const nocturnalSchedule = await prisma.schedule.findFirst({
+      where: {
+        branchId: entryController.branchId,
+        scheduleType: "NOCTURNO",
+      },
+    });
+
+    if (!nocturnalSchedule || !nocturnalSchedule.nightRate) {
+      throw new BusinessConflictError(
+        "No existe un horario nocturno configurado para esta sede"
+      );
+    }
+
+    appliedRate = nocturnalSchedule.nightRate;
+  } else {
+    // Horario DIURNO - usar tarifa por hora del espacio
+    appliedRate = await getHourlyRateBySpace(vehicleRecord.spaceId);
+  }
 
   const newVehicleRecord = await prisma.vehicleRecord.create({
     data: {
@@ -34,6 +56,7 @@ async function createVehicleEntry(entryController, vehicleRecord) {
       appliedRate: appliedRate,
       observations: vehicleRecord.observations,
       branchId: entryController.branchId,
+      scheduleType: scheduleType,
     },
   });
   await updatePhysiclaStateSpace(newVehicleRecord.spaceId, "occupied");
@@ -57,7 +80,16 @@ async function createVehicleExit(exitController, exitData) {
   const exitDate = new Date(Date.now());
   const parkedHours = (exitDate - entry.entryDate) / (1000 * 60 * 60);
 
-  const totalToPay = parkedHours * entry.appliedRate;
+  let totalToPay;
+
+  // Calcular el total según el tipo de horario
+  if (entry.scheduleType === "NOCTURNO") {
+    // Tarifa plana para horario nocturno
+    totalToPay = entry.appliedRate;
+  } else {
+    // Tarifa por horas para horario diurno
+    totalToPay = parkedHours * entry.appliedRate;
+  }
 
   const vehicleRecord = await prisma.vehicleRecord.update({
     where: {
@@ -208,20 +240,20 @@ async function getRecordsHistory(filters = {}, page = 1, pageSize = 10) {
 
     ...(entryStartDate || entryEndDate
       ? {
-          entryDate: {
-            ...(entryStartDate && { gte: new Date(entryStartDate) }),
-            ...(entryEndDate && { lte: new Date(entryEndDate) }),
-          },
-        }
+        entryDate: {
+          ...(entryStartDate && { gte: new Date(entryStartDate) }),
+          ...(entryEndDate && { lte: new Date(entryEndDate) }),
+        },
+      }
       : {}),
 
     ...(exitStartDate || exitEndDate
       ? {
-          exitDate: {
-            ...(exitStartDate && { gte: new Date(exitStartDate) }),
-            ...(exitEndDate && { lte: new Date(exitEndDate) }),
-          },
-        }
+        exitDate: {
+          ...(exitStartDate && { gte: new Date(exitStartDate) }),
+          ...(exitEndDate && { lte: new Date(exitEndDate) }),
+        },
+      }
       : {}),
   };
 
