@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import { readFileSync } from "fs";
 
 import errorHandler from "./src/middlewares/errorHandler.js";
 import authRouter from "./src/routes/authRouter.js";
@@ -19,6 +21,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Swagger Documentation
+const swaggerDocument = JSON.parse(
+  readFileSync("./docs/swagger-output.json", "utf8")
+);
+
 // Middlewares globales
 app.use(cors());
 app.use(express.json());
@@ -27,6 +34,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("SICAP Backend is running!");
 });
+
+// Documentación Swagger
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rutas
 app.use("/api/auth", authRouter);

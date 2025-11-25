@@ -1,0 +1,1419 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SICAP API",
+    "description": "Sistema Inteligente de Control de Acceso a Parqueaderos - Documentaci\u00f3n de API REST",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Endpoints de autenticaci\u00f3n"
+    },
+    {
+      "name": "Users",
+      "description": "Gesti\u00f3n de usuarios/controladores"
+    },
+    {
+      "name": "Branches",
+      "description": "Gesti\u00f3n de sedes/parqueaderos"
+    },
+    {
+      "name": "Vehicle Types",
+      "description": "Gesti\u00f3n de tipos de veh\u00edculos"
+    },
+    {
+      "name": "Zones",
+      "description": "Gesti\u00f3n de zonas de parqueo"
+    },
+    {
+      "name": "Spaces",
+      "description": "Gesti\u00f3n de espacios de parqueo"
+    },
+    {
+      "name": "Vehicle Records",
+      "description": "Gesti\u00f3n de registros de entrada/salida de veh\u00edculos"
+    },
+    {
+      "name": "Schedules",
+      "description": "Gesti\u00f3n de horarios de sedes"
+    },
+    {
+      "name": "Stats",
+      "description": "Estad\u00edsticas y estado del parqueadero"
+    },
+    {
+      "name": "Reports",
+      "description": "Generaci\u00f3n de reportes"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Endpoint 'GET /' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Stats"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "description": "Endpoint 'POST' para hacer login.",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/users/": {
+      "post": {
+        "description": "Endpoint para crear un nuevo usuario.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "description": "Endpoint para obtener todos los usuarios.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "put": {
+        "description": "Endpoint para actualizar un usuario.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "description": "Endpoint para eliminar un usuario",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/branches/": {
+      "post": {
+        "description": "Endpoint para crear un parqueadero nuevo.",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Branches"
+        ]
+      },
+      "get": {
+        "description": "Endpoint para obtener todos los parqueaderos.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Branches"
+        ]
+      }
+    },
+    "/api/branches/{id}": {
+      "get": {
+        "description": "Endpoint para obtener un parqueadero por id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Branches"
+        ]
+      },
+      "put": {
+        "description": "Endpoint para actualizar un parqueadero.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Branches"
+        ]
+      },
+      "delete": {
+        "description": "Endpoint para eliminar un parqueadero.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Branches"
+        ]
+      }
+    },
+    "/api/vehicleTypes/": {
+      "post": {
+        "description": "Endpoint 'POST /api/vehicleTypes/' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Vehicle Types"
+        ]
+      },
+      "get": {
+        "description": "Endpoint 'GET /api/vehicleTypes/' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Types"
+        ]
+      }
+    },
+    "/api/vehicleTypes/{id}": {
+      "get": {
+        "description": "Endpoint 'GET /api/vehicleTypes/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Types"
+        ]
+      },
+      "put": {
+        "description": "Endpoint 'PUT /api/vehicleTypes/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Types"
+        ]
+      },
+      "delete": {
+        "description": "Endpoint 'DELETE /api/vehicleTypes/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Types"
+        ]
+      }
+    },
+    "/api/zones/": {
+      "post": {
+        "description": "Endpoint 'POST /api/zones/' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Zones"
+        ]
+      }
+    },
+    "/api/zones/{branchId}": {
+      "get": {
+        "description": "Endpoint 'GET /api/zones/{branchId}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "branchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Zones"
+        ]
+      }
+    },
+    "/api/zones/{id}": {
+      "put": {
+        "description": "Endpoint 'PUT /api/zones/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Zones"
+        ]
+      },
+      "delete": {
+        "description": "Endpoint 'DELETE /api/zones/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Zones"
+        ]
+      }
+    },
+    "/api/spaces/{zoneId}": {
+      "get": {
+        "description": "Endpoint 'GET /api/spaces/{zoneId}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "zoneId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Spaces"
+        ]
+      }
+    },
+    "/api/vehicleRecords/entry": {
+      "post": {
+        "description": "Endpoint 'POST /api/vehicleRecords/entry' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/vehicleRecords/exit": {
+      "post": {
+        "description": "Endpoint 'POST /api/vehicleRecords/exit' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/vehicleRecords/active/{id}": {
+      "get": {
+        "description": "Endpoint 'GET /api/vehicleRecords/active/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/vehicleRecords/{id}": {
+      "put": {
+        "description": "Endpoint 'PUT /api/vehicleRecords/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/vehicleRecords/filtered": {
+      "post": {
+        "description": "Endpoint 'POST /api/vehicleRecords/filtered' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "example": "any"
+                  },
+                  "pageSize": {
+                    "example": "any"
+                  },
+                  "filters": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/vehicleRecords/dailySummary/{id}": {
+      "post": {
+        "description": "Endpoint 'POST /api/vehicleRecords/dailySummary/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Vehicle Records"
+        ]
+      }
+    },
+    "/api/schedules/": {
+      "post": {
+        "description": "Endpoint 'POST /api/schedules/' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/schedules/batch": {
+      "post": {
+        "description": "Endpoint 'POST /api/schedules/batch' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "branchId": {
+                    "example": "any"
+                  },
+                  "schedules": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/schedules/branch/{branchId}": {
+      "get": {
+        "description": "Endpoint 'GET /api/schedules/branch/{branchId}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "branchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/schedules/branch/{branchId}/day/{dayOfWeek}": {
+      "get": {
+        "description": "Endpoint 'GET /api/schedules/branch/{branchId}/day/{dayOfWeek}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "branchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dayOfWeek",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/schedules/{scheduleId}": {
+      "put": {
+        "description": "Endpoint 'PUT /api/schedules/{scheduleId}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      },
+      "delete": {
+        "description": "Endpoint 'DELETE /api/schedules/{scheduleId}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "scheduleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/schedules/branch/{branchId}/all/permanent": {
+      "delete": {
+        "description": "Endpoint 'DELETE /api/schedules/branch/{branchId}/all/permanent' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "branchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "tags": [
+          "Schedules"
+        ]
+      }
+    },
+    "/api/stats/parking/status/{id}": {
+      "get": {
+        "description": "Endpoint 'GET /api/stats/parking/status/{id}' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Stats"
+        ]
+      }
+    },
+    "/api/reports/": {
+      "post": {
+        "description": "Endpoint 'POST /api/reports/' del m\u00f3dulo asignado autom\u00e1ticamente.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "example": "any"
+                  },
+                  "startDate": {
+                    "example": "any"
+                  },
+                  "endDate": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Reports"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "usuario@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Login exitoso"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "names": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastNames": {
+                    "type": "string",
+                    "example": "Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "usuario@example.com"
+                  },
+                  "role": {
+                    "type": "string",
+                    "example": "ADMIN"
+                  },
+                  "branchId": {
+                    "type": "number",
+                    "example": 1
+                  }
+                }
+              },
+              "token": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+            }
+          }
+        }
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "cedula": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "names": {
+            "type": "string",
+            "example": "Juan"
+          },
+          "lastNames": {
+            "type": "string",
+            "example": "P\u00e9rez"
+          },
+          "phone": {
+            "type": "string",
+            "example": "3001234567"
+          },
+          "email": {
+            "type": "string",
+            "example": "juan.perez@example.com"
+          },
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "userHash": {
+            "type": "string",
+            "example": "jperez"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          },
+          "role": {
+            "type": "string",
+            "example": "CONTROLLER"
+          },
+          "hireDate": {
+            "type": "string",
+            "example": "2024-01-15"
+          }
+        }
+      },
+      "CreateBranchRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Parqueadero Centro"
+          },
+          "address": {
+            "type": "string",
+            "example": "Calle 10 # 20-30"
+          },
+          "city": {
+            "type": "string",
+            "example": "Tunja"
+          },
+          "department": {
+            "type": "string",
+            "example": "Boyac\u00e1"
+          },
+          "phone": {
+            "type": "string",
+            "example": "3001234567"
+          }
+        }
+      },
+      "CreateVehicleTypeRequest": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Autom\u00f3vil"
+          },
+          "description": {
+            "type": "string",
+            "example": "Veh\u00edculos tipo carro"
+          },
+          "hourlyRate": {
+            "type": "number",
+            "example": 3000
+          }
+        }
+      },
+      "CreateZoneRequest": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Zona A"
+          },
+          "vehicleTypeId": {
+            "type": "number",
+            "example": 1
+          },
+          "totalCapacity": {
+            "type": "number",
+            "example": 50
+          },
+          "description": {
+            "type": "string",
+            "example": "Zona principal de parqueo"
+          }
+        }
+      },
+      "CreateScheduleRequest": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "dayOfWeek": {
+            "type": "string",
+            "example": "monday"
+          },
+          "openingTime": {
+            "type": "string",
+            "example": "07:00"
+          },
+          "closingTime": {
+            "type": "string",
+            "example": "21:00"
+          }
+        }
+      },
+      "CreateMultipleSchedulesRequest": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "schedules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dayOfWeek": {
+                  "type": "string",
+                  "example": "tuesday"
+                },
+                "openingTime": {
+                  "type": "string",
+                  "example": "07:00"
+                },
+                "closingTime": {
+                  "type": "string",
+                  "example": "21:00"
+                }
+              }
+            }
+          }
+        }
+      },
+      "VehicleEntryRequest": {
+        "type": "object",
+        "properties": {
+          "licensePlate": {
+            "type": "string",
+            "example": "ABC123"
+          },
+          "spaceId": {
+            "type": "number",
+            "example": 1
+          },
+          "observations": {
+            "type": "string",
+            "example": "Cliente frecuente"
+          }
+        }
+      },
+      "VehicleExitRequest": {
+        "type": "object",
+        "properties": {
+          "licensePlate": {
+            "type": "string",
+            "example": "ABC123"
+          },
+          "observations": {
+            "type": "string",
+            "example": "Salida normal"
+          }
+        }
+      },
+      "RecordsFilterRequest": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "number",
+            "example": 1
+          },
+          "licensePlate": {
+            "type": "string",
+            "example": "ABC123"
+          },
+          "status": {
+            "type": "string",
+            "example": "finished"
+          },
+          "entryStartDate": {
+            "type": "string",
+            "example": "2024-01-01"
+          },
+          "entryEndDate": {
+            "type": "string",
+            "example": "2024-01-31"
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "number",
+            "example": 10
+          }
+        }
+      },
+      "DailySummaryRequest": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2024-01-15"
+          }
+        }
+      },
+      "ReportRequest": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "general"
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2024-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2024-01-31"
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Operaci\u00f3n exitosa"
+          },
+          "data": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Mensaje de error"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "Ingrese el token en el formato: Bearer {token}"
+      }
+    }
+  }
+}

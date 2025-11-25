@@ -2,6 +2,7 @@ import {
   createBranch,
   deleteBranch,
   getAllBranches,
+  getBranchById,
   updateBranch,
 } from "../services/branchServerice.js";
 
@@ -25,6 +26,21 @@ async function getAllBranchesController(req, res, next) {
       success: true,
       message: "Sedes recuperadas exitosamente",
       data: branches,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getBranchByIdController(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const branch = await getBranchById(Number(id));
+    return res.status(200).json({
+      success: true,
+      message: "Sede retornada existosamente",
+      data: branch
     });
   } catch (error) {
     next(error);
@@ -65,6 +81,7 @@ async function deleteBranchController(req, res, next) {
 export {
   createBranchController,
   getAllBranchesController,
+  getBranchByIdController,
   updateBranchController,
   deleteBranchController,
 };

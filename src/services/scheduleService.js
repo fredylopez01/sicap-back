@@ -10,42 +10,92 @@ async function createSchedule(scheduleData) {
     throw new NotFoundError("Esta sede no existe, por favor verifique.");
   }
 
-  // Verificar si ya existe un horario para ese día en esa sede
-  const existingSchedule = await prisma.schedule.findUnique({
-    where: {
-      branchId_dayOfWeek: {
+  const scheduleType = scheduleData.scheduleType || "DIURNO";
+
+  // Validaciones específicas por tipo de horario
+  if (scheduleType === "NOCTURNO") {
+    // Verificar que no exista ya un horario nocturno para esta sede
+    const existingNocturnal = await prisma.schedule.findFirst({
+      where: {
+        branchId: scheduleData.branchId,
+        scheduleType: "NOCTURNO",
+      },
+    });
+
+    if (existingNocturnal) {
+      throw new ConflictDBError(
+        "Ya existe un horario nocturno para esta sede"
+      );
+    }
+
+    // Validar que se proporcione la tarifa nocturna
+    if (!scheduleData.nightRate || scheduleData.nightRate <= 0) {
+      throw new ConflictDBError(
+        "Debe proporcionar una tarifa nocturna válida para horarios nocturnos"
+      );
+    }
+
+    // Crear horario nocturno con tiempos por defecto
+    const schedule = await prisma.schedule.create({
+      data: {
+        branchId: scheduleData.branchId,
+        scheduleType: "NOCTURNO",
+        dayOfWeek: null, // No aplica para horarios nocturnos
+        openingTime: new Date("1970-01-01T20:00:00.000Z"), // 8pm
+        closingTime: new Date("1970-01-01T06:00:00.000Z"), // 6am
+        nightRate: scheduleData.nightRate,
+      },
+      include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+          },
+        },
+      },
+    });
+
+    return schedule;
+  } else {
+    // Horario DIURNO - lógica existente
+    // Verificar si ya existe un horario para ese día en esa sede
+    const existingSchedule = await prisma.schedule.findFirst({
+      where: {
         branchId: scheduleData.branchId,
         dayOfWeek: scheduleData.dayOfWeek,
       },
-    },
-  });
+    });
 
-  if (existingSchedule) {
-    throw new ConflictDBError(
-      `Ya existe un horario para el día ${scheduleData.dayOfWeek} en esta sede`
-    );
-  }
+    if (existingSchedule) {
+      throw new ConflictDBError(
+        `Ya existe un horario para el día ${scheduleData.dayOfWeek} en esta sede`
+      );
+    }
 
-  // Crear el horario
-  const schedule = await prisma.schedule.create({
-    data: {
-      branchId: scheduleData.branchId,
-      dayOfWeek: scheduleData.dayOfWeek,
-      openingTime: new Date(`1970-01-01T${scheduleData.openingTime}:00.000Z`),
-      closingTime: new Date(`1970-01-01T${scheduleData.closingTime}:00.000Z`),
-    },
-    include: {
-      branch: {
-        select: {
-          id: true,
-          name: true,
-          city: true,
+    // Crear el horario diurno
+    const schedule = await prisma.schedule.create({
+      data: {
+        branchId: scheduleData.branchId,
+        scheduleType: "DIURNO",
+        dayOfWeek: scheduleData.dayOfWeek,
+        openingTime: new Date(`1970-01-01T${scheduleData.openingTime}:00.000Z`),
+        closingTime: new Date(`1970-01-01T${scheduleData.closingTime}:00.000Z`),
+        nightRate: null,
+      },
+      include: {
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return schedule;
+    return schedule;
+  }
 }
 
 // Crear múltiples horarios de una vez
@@ -130,12 +180,10 @@ async function getSchedulesByBranch(branchId) {
 
 // Obtener el horario de un día específico
 async function getScheduleByDay(branchId, dayOfWeek) {
-  const schedule = await prisma.schedule.findUnique({
+  const schedule = await prisma.schedule.findFirst({
     where: {
-      unique_sede_dia: {
-        branchId: branchId,
-        dayOfWeek: dayOfWeek,
-      },
+      branchId: branchId,
+      dayOfWeek: dayOfWeek,
     },
     include: {
       branch: {
@@ -172,6 +220,10 @@ async function updateSchedule(scheduleId, updateData) {
     dataToUpdate.closingTime = new Date(
       `1970-01-01T${updateData.closingTime}:00.000Z`
     );
+  }
+
+  if (updateData.nightRate !== undefined) {
+    dataToUpdate.nightRate = updateData.nightRate;
   }
 
   if (updateData.isActive !== undefined) {
@@ -230,6 +282,35 @@ async function hardDeleteSchedule(scheduleId) {
   return { message: "Horario eliminado permanentemente" };
 }
 
+async function hardDeleteAllSchedulesByBranch(branchId) {
+  // Verificar si la sede existe
+  const branch = await getBranchById(branchId);
+  if (!branch) {
+    throw new NotFoundError(`La sede con ID ${branchId} no existe`);
+  }
+
+  // Obtener el conteo antes de eliminar para el mensaje
+  const schedulesToDelete = await prisma.schedule.count({
+    where: {
+      branchId: branchId,
+    },
+  });
+
+  // Eliminar permanentemente todos los horarios
+  const result = await prisma.schedule.deleteMany({
+    where: {
+      branchId: branchId,
+    },
+  });
+
+  return {
+    message: `Se eliminaron permanentemente ${result.count} horarios de la sede ${branch.name}`,
+    count: result.count,
+    branchId: branchId,
+  };
+}
+
+
 export {
   createSchedule,
   createMultipleSchedules,
@@ -238,4 +319,5 @@ export {
   updateSchedule,
   deleteSchedule,
   hardDeleteSchedule,
+  hardDeleteAllSchedulesByBranch,
 };
