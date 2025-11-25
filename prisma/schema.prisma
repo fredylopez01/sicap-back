@@ -153,6 +153,7 @@ model VehicleRecord {
   observations      String?      @map("observaciones") @db.Text
   status            RecordStatus @default(active) @map("estado")
   branchId          Int          @map("id_sede")
+  scheduleType      ScheduleType @default(DIURNO) @map("tipo_horario")
 
   // Relations
   space           Space  @relation(fields: [spaceId], references: [id])
@@ -196,19 +197,21 @@ model Subscription {
 
 // Schedule table
 model Schedule {
-  id          Int       @id @default(autoincrement()) @map("id_horario")
-  branchId    Int       @map("id_sede")
-  dayOfWeek   DayOfWeek @map("dia_semana")
-  openingTime DateTime  @map("hora_apertura") @db.Time(0)
-  closingTime DateTime  @map("hora_cierre") @db.Time(0)
-  isActive    Boolean   @default(true) @map("activo")
-  createdAt   DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(0)
+  id           Int          @id @default(autoincrement()) @map("id_horario")
+  branchId     Int          @map("id_sede")
+  scheduleType ScheduleType @default(DIURNO) @map("tipo_horario")
+  dayOfWeek    DayOfWeek?   @map("dia_semana")
+  openingTime  DateTime     @map("hora_apertura") @db.Time(0)
+  closingTime  DateTime     @map("hora_cierre") @db.Time(0)
+  nightRate    Decimal?     @map("tarifa_nocturna") @db.Decimal(10, 2)
+  isActive     Boolean      @default(true) @map("activo")
+  createdAt    DateTime     @default(now()) @map("fecha_creacion") @db.Timestamp(0)
 
   // Relations
   branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
 
-  @@unique([branchId, dayOfWeek], map: "unique_sede_dia")
   @@index([branchId])
+  @@index([branchId, dayOfWeek])
   @@map("horarios")
 }
 
@@ -272,4 +275,9 @@ enum DayOfWeek {
   friday    @map("viernes")
   saturday  @map("sabado")
   sunday    @map("domingo")
+}
+
+enum ScheduleType {
+  DIURNO   @map("diurno")
+  NOCTURNO @map("nocturno")
 }
